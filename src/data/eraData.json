@@ -1,0 +1,54 @@
+
+
+[
+  {
+    "Era": 2,
+    "EraTitle": "Bronze Age",
+    "EraCost": 63750
+  },
+  {
+    "Era": 3,
+    "EraTitle": "Iron Age",
+    "EraCost": 929040
+  },
+  {
+    "Era": 4,
+    "EraTitle": "Classical Age",
+    "EraCost": 9004740
+  },
+  {
+    "Era": 5,
+    "EraTitle": "Middle Age",
+    "EraCost": 184137980
+  },
+  {
+    "Era": 6,
+    "EraTitle": "Renaissance",
+    "EraCost":  1742017980 		
+
+  },
+  {
+    "Era": 7,
+    "EraTitle": "Industrial",
+    "EraCost":  33263393350 		
+
+  },
+    {
+    "Era": 8,
+    "EraTitle": "World Wars",
+    "EraCost":   941318393350 		
+ 		
+
+  },
+  {
+    "Era": 9,
+    "EraTitle": "Cold War",
+    "EraCost":   14580188393350 		
+  },
+  {
+    "Era": 10,
+    "EraTitle": "Information Age",
+    "EraCost":  314580188393350 		
+
+  }
+]

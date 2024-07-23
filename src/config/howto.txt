@@ -1,0 +1,40 @@
+Now, let's walk through how to create a menu using this approach:
+
+Define your menu structure:
+
+In the sidebarConfig.js file, you define the structure of your menu using the homeConfig, civIdleConfig, or any other configurations you need.
+Each configuration is an array of objects, where each object represents a group in the menu.
+Each group has a header and an array of items.
+Each item has a text (displayed in the menu), a path (for navigation), and an icon (imported from Material-UI or your custom icons).
+
+
+Map configurations to routes:
+
+In the sidebarConfig object, you map these configurations to specific routes or route prefixes.
+For example, home: homeConfig means the home configuration will be used for the root path.
+CivIdle: civIdleConfig means the CivIdle configuration will be used for any path starting with '/cividle'.
+
+
+Use the useSidebar hook:
+
+This hook determines which configuration to use based on the current path.
+It checks for specific prefixes first (like '/cividle'), then falls back to the first segment of the path.
+If no matching configuration is found, it defaults to the home configuration.
+
+
+Render the Sidebar:
+
+The Sidebar component uses the useSidebar hook to get the current configuration and path.
+It then renders the menu structure, creating headers, groups, and items as defined in the configuration.
+Each item is rendered as a link with an icon and text.
+The current path is used to highlight the active item.
+
+
+
+To add a new menu or modify an existing one:
+
+Create a new configuration in sidebarConfig.js (e.g., terraformingMarsConfig).
+Add it to the sidebarConfig object with the appropriate key (e.g., TerraformingMars: terraformingMarsConfig).
+Update the useSidebar hook if you need special routing logic for this new menu.
+
+This approach allows you to easily manage different menu configurations for different parts of your application while keeping the sidebar component itself relatively simple and reusable.

@@ -1,0 +1,44 @@
+Summary of Implemented React Components and Structure:
+
+---
+
+HomePage Component (HomePage.js):
+Serves as the main landing page for the website.
+Uses a grid layout to display multiple Tile components.
+Contains an array of tile data, including title, description, and image source for each tile.
+Utilizes Material-UI components for layout and typography.
+
+---
+
+Tile Component (Tile.js):
+A reusable component representing individual tiles.
+
+Properties:
+title: The main heading of the tile
+description: A brief explanation that appears on hover
+imageSrc: Path to the icon/image displayed on the left side of the tile
+
+Layout:
+Fixed height of 150px
+Divided into two sections: left (1/3 width) for image, right (2/3 width) for content
+
+Hover effect:
+Title moves to 2px from the top
+Description fades in below the title without moving
+Uses Material-UI Paper component for elevation and styling
+
+Image Handling:
+Images are stored in the public/images directory
+Referenced in the Tile component using the imageSrc prop
+Each tile can have a unique image
+
+Styling and Animations:
+Utilizes Material-UI's styling solution (sx prop)
+Smooth transitions for hover effects (0.2s ease-out)
+Responsive design using Material-UI Grid system
+
+---
+
+Project Structure:
+React components in separate files (HomePage.js, Tile.js)
+Static assets (images) stored in the public/images directory

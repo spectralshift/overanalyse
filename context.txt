@@ -1,0 +1,74 @@
+Site Summary:
+Framework and Libraries:
+
+React (Create React App)
+Material-UI for UI components
+React Router for navigation
+
+File Structure:
+src/
+├── components/
+│   ├── Header.js
+│   ├── Sidebar.js
+│   ├── ErrorBoundary.js
+│   └── Loading.js
+├── config/
+│   └── sidebarConfig.js
+├── data/
+├── hooks/
+├── layout/
+│   └── Layout.js
+├── pages/
+│   ├── HomePage.js
+│   ├── Tile.js
+│   ├── CivIdle.js
+│   └── {other pages}
+├── theme/
+│   └── index.js
+├── utils/
+├── constants.js
+├── App.js
+└── index.js
+
+Pages:
+Tile: Handles formatting and presentation of tiles used on other pages
+HomePage: The landing page of the site
+{Other}: The pages of the site
+
+Key Components:
+Layout: Wraps the entire application, includes Header and Sidebar
+Header: Top bar with app title
+Sidebar: Left-side navigation, dynamically changes based on current page
+ErrorBoundary: Catches and displays errors gracefully
+Loading: Displays during asynchronous operations
+
+Routing:
+Implemented using React Router
+Main routes: Home, Dashboard, Reports, Settings
+Lazy loading used for route components
+
+Styling:
+Material-UI used for component styling
+Custom theme defined in theme/index.js
+Color scheme: Light blue sidebar, light grey header, white main content area
+
+State Management:
+Local state management using React hooks
+Potential for global state management (not yet implemented)
+
+Configuration:
+Sidebar configuration stored in sidebarConfig.js
+Application constants defined in constants.js
+
+Error Handling and Loading:
+ErrorBoundary component for catching and displaying errors
+Loading component for asynchronous operations
+
+Environment Variables:
+.env file set up for environment-specific variables
+
+Additional Setup:
+ESLint and Prettier configured for code formatting
+Basic accessibility features in place
+Folder for custom hooks (hooks/)
+Utility functions folder (utils/)
