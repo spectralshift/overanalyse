@@ -1,5 +1,127 @@
 [
 	{
+		"id": "WheatFarm",
+		"name": "Wheat Farm",
+		"input": {},
+		"output": {
+			"Wheat": 1
+		}
+	},
+	{
+		"id": "StoneQuarry",
+		"name": "Stone Quarry",
+		"input": {},
+		"output": {
+			"Stone": 1
+		}
+	},
+	{
+		"id": "LoggingCamp",
+		"name": "Logging Camp",
+		"input": {},
+		"output": {
+			"Wood": 1
+		}
+	},
+	{
+		"id": "Aqueduct",
+		"name": "Aqueduct",
+		"input": {},
+		"output": {
+			"Water": 1
+		}
+	},
+	{
+		"id": "IronMiningCamp",
+		"name": "Iron Mining Camp",
+		"input": {},
+		"output": {
+			"Iron": 1
+		}
+	},
+	{
+		"id": "CopperMiningCamp",
+		"name": "Copper Mining Camp",
+		"input": {},
+		"output": {
+			"Copper": 1
+		}
+	},
+	{
+		"id": "CoalMine",
+		"name": "Coal Mine",
+		"input": {},
+		"output": {
+			"Coal": 1
+		}
+	},
+	{
+		"id": "Sandpit",
+		"name": "Sandpit",
+		"input": {},
+		"output": {
+			"Sand": 1
+		}
+	},
+	{
+		"id": "GoldMiningCamp",
+		"name": "Gold Mining Camp",
+		"input": {},
+		"output": {
+			"Gold": 1
+		}
+	},
+	{
+		"id": "UraniumMine",
+		"name": "Uranium Mine",
+		"input": {},
+		"output": {
+			"Uranium": 1
+		}
+	},
+	{
+		"id": "UraniumEnrichmentPlant",
+		"name": "Uranium Enrichment Plant",
+		"input": {
+			"Uranium": 10
+		},
+		"output": {
+			"NuclearFuelRod": 1
+		}
+	},
+	{
+		"id": "OilWell",
+		"name": "Oil Well",
+		"input": {},
+		"output": {
+			"Oil": 1
+		}
+	},
+	{
+		"id": "NaturalGasWell",
+		"name": "Natural Gas Well",
+		"input": {},
+		"output": {
+			"NaturalGas": 1
+		}
+	},
+	{
+		"id": "AluminumSmelter",
+		"name": "Aluminum Smelter",
+		"input": {},
+		"output": {
+			"Aluminum": 1
+		}
+	},
+	{
+		"id": "HydroDam",
+		"name": "Hydro Dam",
+		"input": {},
+		"output": {
+			"Water": 1
+		}
+	},
+	{
 		"id": "SwordForge",
 		"name": "Sword Forge",
 		"input": {
@@ -186,8 +308,7 @@
 		},
 		"output": {
 			"Battleship": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "TankFactory",
@@ -227,8 +348,7 @@
 		},
 		"output": {
 			"Rocket": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "AtomicFacility",
@@ -239,8 +359,7 @@
 		},
 		"output": {
 			"AtomicBomb": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "FighterJetPlant",
@@ -251,8 +370,7 @@
 		},
 		"output": {
 			"FighterJet": 2
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "AircraftCarrierYard",
@@ -263,8 +381,7 @@
 		},
 		"output": {
 			"AircraftCarrier": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "SubmarineYard",
@@ -275,7 +392,7 @@
 		"output": {
 			"Submarine": 1
 		},
-		"power": true
+		"ev": true
 	},
 	{
 		"id": "NuclearSubmarineYard",
@@ -286,8 +403,7 @@
 		},
 		"output": {
 			"NuclearSubmarine": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "NuclearMissileSilo",
@@ -298,8 +414,19 @@
 		},
 		"output": {
 			"NuclearMissile": 1
+		}
+	},
+	{
+		"id": "Peacekeeper",
+		"name": "Peacekeeper",
+		"input": {
+			"NuclearMissile": 4,
+			"Diplomacy": 1,
+			"Radio": 1
 		},
-		"power": true
+		"output": {
+			"Peace": 1
+		}
 	},
 	{
 		"id": "WritersGuild",
@@ -309,6 +436,17 @@
 		},
 		"output": {
 			"Poem": 1
+		}
+	},
+	{
+		"id": "PoetrySchool",
+		"name": "Poetry School",
+		"input": {
+			"Paper": 2,
+			"Alcohol": 1
+		},
+		"output": {
+			"Poem": 2
 		}
 	},
 	{
@@ -369,42 +507,21 @@
 		"name": "Mosque",
 		"input": {
 			"Cheese": 1,
-			"Marble": 1
+			"Opera": 1
+		},
+		"output": {
+			"Faith": 4
+		}
+	},
+	{
+		"id": "Pagoda",
+		"name": "Pagoda",
+		"input": {
+			"Painting": 1,
+			"Furniture": 1
 		},
 		"output": {
 			"Faith": 3
-		}
-	},
-	{
-		"id": "Cathedral",
-		"name": "Cathedral",
-		"input": {
-			"Sword": 1,
-			"Armor": 1
-		},
-		"output": {
-			"Faith": 6
-		}
-	},
-	{
-		"id": "Library",
-		"name": "Library",
-		"input": {
-			"Paper": 3
-		},
-		"output": {
-			"Science": 105
-		}
-	},
-	{
-		"id": "School",
-		"name": "School",
-		"input": {
-			"Faith": 1,
-			"Poem": 1
-		},
-		"output": {
-			"Science": 470
 		}
 	},
 	{
@@ -415,8 +532,7 @@
 			"Faith": 2
 		},
 		"output": {
-			"Philosophy": 1,
-			"Science": 250
+			"Philosophy": 1
 		}
 	},
 	{
@@ -427,8 +543,7 @@
 			"Book": 10
 		},
 		"output": {
-			"Newspaper": 1,
-			"Science": 1000
+			"Newspaper": 1
 		}
 	},
 	{
@@ -439,30 +554,7 @@
 			"Book": 10
 		},
 		"output": {
-			"Magazine": 1,
-			"Science": 1000
-		}
-	},
-	{
-		"id": "ResearchLab",
-		"name": "Research Lab",
-		"input": {
-			"Culture": 2,
-			"Philosophy": 2
-		},
-		"output": {
-			"Science": 5560
-		}
-	},
-	{
-		"id": "ResearchFund",
-		"name": "Research Fund",
-		"input": {
-			"Banknote": 1,
-			"Bond": 1
-		},
-		"output": {
-			"Science": 25940
+			"Magazine": 1
 		}
 	},
 	{
@@ -522,8 +614,7 @@
 		},
 		"output": {
 			"Movie": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "RadioStation",
@@ -535,8 +626,7 @@
 		},
 		"output": {
 			"Radio": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "Embassy",
@@ -560,12 +650,80 @@
 		"output": {
 			"TV": 1
 		},
-		"power": true
+		"ev": true
+	},
+	{
+		"id": "InternetServiceProvider",
+		"name": "Internet Service Provider",
+		"input": {
+			"Computer": 1,
+			"OpticalFiber": 5
+		},
+		"output": {
+			"Internet": 1
+		}
+	},
+	{
+		"id": "SoftwareCompany",
+		"name": "Software Company",
+		"input": {
+			"Computer": 1,
+			"Philosophy": 10
+		},
+		"output": {
+			"Software": 1
+		}
+	},
+	{
+		"id": "SupercomputerLab",
+		"name": "Supercomputer Lab",
+		"input": {
+			"Software": 1,
+			"Computer": 5
+		},
+		"output": {
+			"Supercomputer": 1
+		}
+	},
+	{
+		"id": "CivGPT",
+		"name": "CivGPT",
+		"input": {
+			"Internet": 1,
+			"Supercomputer": 2,
+			"Radio": 1
+		},
+		"output": {
+			"CivGPT": 1
+		}
+	},
+	{
+		"id": "CivTok",
+		"name": "CivTok",
+		"input": {
+			"Internet": 1,
+			"Politics": 1
+		},
+		"output": {
+			"CivTok": 1
+		}
+	},
+	{
+		"id": "CivOasis",
+		"name": "CivOasis",
+		"input": {
+			"CivTok": 1,
+			"Supercomputer": 1,
+			"Diplomacy": 2
+		},
+		"output": {
+			"CivOasis": 1
+		}
 	},
 	{
 		"id": "CottonPlantation",
 		"name": "Cotton Plantation",
-		"input": {},
+		"input" : {},
 		"output": {
 			"Cotton": 1
 		}
@@ -623,14 +781,23 @@
 		}
 	},
 	{
-		"id": "LivestockFarm",
-		"name": "Livestock Farm",
+		"id": "PoultryFarm",
+		"name": "Poultry Farm",
 		"input": {
 			"Wheat": 2
 		},
 		"output": {
-			"Meat": 1,
-			"Milk": 1
+			"Meat": 2
+		}
+	},
+	{
+		"id": "DairyFarm",
+		"name": "Dairy Farm",
+		"input": {
+			"Wheat": 2
+		},
+		"output": {
+			"Milk": 2
 		}
 	},
 	{
@@ -740,6 +907,17 @@
 		}
 	},
 	{
+		"id": "Blacksmith",
+		"name": "Blacksmith",
+		"input": {
+			"Copper": 1,
+			"Wood": 1
+		},
+		"output": {
+			"Tool": 1
+		}
+	},
+	{
 		"id": "IronForge",
 		"name": "Iron Forge",
 		"input": {
@@ -801,8 +979,7 @@
 		},
 		"output": {
 			"Silicon": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "CableFactory",
@@ -838,6 +1015,18 @@
 		}
 	},
 	{
+		"id": "MaglevFactory",
+		"name": "Maglev Factory",
+		"input": {
+			"Train": 15,
+			"Airplane": 15,
+			"Car": 15
+		},
+		"output": {
+			"Maglev": 1
+		}
+	},
+	{
 		"id": "CarFactory",
 		"name": "Car Factory",
 		"input": {
@@ -850,8 +1039,32 @@
 		},
 		"output": {
 			"Car": 1
+		}
+	},
+	{
+		"id": "RobocarFactory",
+		"name": "Robocar Factory",
+		"input": {
+			"Car": 5,
+			"Supercomputer": 2,
+			"Satellite": 1
 		},
-		"power": true
+		"output": {
+			"Robocar": 1
+		}
+	},
+	{
+		"id": "SpaceCenter",
+		"name": "Space Center",
+		"input": {
+			"Maglev": 1,
+			"Radio": 1,
+			"Supercomputer": 1
+		},
+		"output": {
+			"PlanetaryRover": 2
+		},
+		"ev": true
 	},
 	{
 		"id": "OilRefinery",
@@ -871,8 +1084,7 @@
 		},
 		"output": {
 			"Satellite": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "AirplaneFactory",
@@ -882,8 +1094,7 @@
 		},
 		"output": {
 			"Airplane": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "SpacecraftFactory",
@@ -896,7 +1107,6 @@
 		"output": {
 			"Spacecraft": 1
 		},
-		"power": true,
 		"ev": true
 	},
 	{
@@ -908,8 +1118,7 @@
 		},
 		"output": {
 			"Semiconductor": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "ComputerFactory",
@@ -921,8 +1130,7 @@
 		},
 		"output": {
 			"Computer": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "OpticalFiberPlant",
@@ -934,8 +1142,7 @@
 		},
 		"output": {
 			"OpticalFiber": 1
-		},
-		"power": true
+		}
 	},
 	{
 		"id": "CoinMint",
@@ -975,7 +1182,8 @@
 		},
 		"output": {
 			"Stock": 1
-		}
+		},
+		"ev": true
 	},
 	{
 		"id": "ForexMarket",
@@ -989,118 +1197,36 @@
 		}
 	},
 	{
-		"id": "WheatFarm",
-		"name": "Wheat Farm",
-		"input": {},
-		"output": {
-			"Wheat": 1
-		}
-	},
-	{
-		"id": "StoneQuarry",
-		"name": "Stone Quarry",
-		"input": {},
-		"output": {
-			"Stone": 1
-		}
-	},
-	{
-		"id": "LoggingCamp",
-		"name": "Logging Camp",
-		"input": {},
-		"output": {
-			"Wood": 1
-		}
-	},
-	{
-		"id": "Aqueduct",
-		"name": "Aqueduct",
-		"input": {},
-		"output": {
-			"Water": 1
-		}
-	},
-	{
-		"id": "IronMiningCamp",
-		"name": "Iron Mining Camp",
-		"input": {},
-		"output": {
-			"Iron": 1
-		}
-	},
-	{
-		"id": "CopperMiningCamp",
-		"name": "Copper Mining Camp",
-		"input": {},
-		"output": {
-			"Copper": 1
-		}
-	},
-	{
-		"id": "CoalMine",
-		"name": "Coal Mine",
-		"input": {},
-		"output": {
-			"Coal": 1
-		}
-	},
-	{
-		"id": "Sandpit",
-		"name": "Sandpit",
-		"input": {},
-		"output": {
-			"Sand": 1
-		}
-	},
-	{
-		"id": "GoldMiningCamp",
-		"name": "Gold Mining Camp",
-		"input": {},
-		"output": {
-			"Gold": 1
-		}
-	},
-	{
-		"id": "UraniumMine",
-		"name": "Uranium Mine",
-		"input": {},
-		"output": {
-			"Uranium": 1
-		}
-	},
-	{
-		"id": "UraniumEnrichmentPlant",
-		"name": "Uranium Enrichment Plant",
+		"id": "MutualFund",
+		"name": "Mutual Fund",
 		"input": {
-			"Uranium": 10
+			"Forex": 1,
+			"Stock": 1
 		},
 		"output": {
-			"NuclearFuelRod": 1
+			"MutualFund": 1
+		}
+	},
+	{
+		"id": "HedgeFund",
+		"name": "Hedge Fund",
+		"input": {
+			"MutualFund": 2
 		},
-		"power": true
-	},
-	{
-		"id": "OilWell",
-		"name": "Oil Well",
-		"input": {},
 		"output": {
-			"Oil": 1
+			"HedgeFund": 1
 		}
 	},
 	{
-		"id": "NaturalGasWell",
-		"name": "Natural Gas Well",
-		"input": {},
+		"id": "BitcoinMiner",
+		"name": "Bitcoin Miner",
+		"input": {
+			"HedgeFund": 2,
+			"CivTok": 1
+		},
 		"output": {
-			"NaturalGas": 1
-		}
-	},
-	{
-		"id": "AluminumSmelter",
-		"name": "Aluminum Smelter",
-		"input": {},
-		"output": {
-			"Aluminum": 1
-		}
+			"Bitcoin": 1
+		},
+		"ev": true
 	}
 ]
