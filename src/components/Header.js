@@ -8,9 +8,9 @@ const Header = () => {
     <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: '#4a90e2' }}>
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <img src="/path-to-your-logo.png" alt="Site Logo" style={{ height: '40px', marginRight: '16px' }} />
+          
           <Typography variant="h6" noWrap component="div" sx={{ fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif', fontWeight: 500 }}>
-            OverAnalyse
+            OverAnalyze
           </Typography>
         </Box>
         <Box>

@@ -907,17 +907,6 @@
 		}
 	},
 	{
-		"id": "Blacksmith",
-		"name": "Blacksmith",
-		"input": {
-			"Copper": 1,
-			"Wood": 1
-		},
-		"output": {
-			"Tool": 1
-		}
-	},
-	{
 		"id": "IronForge",
 		"name": "Iron Forge",
 		"input": {

@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
 import { Paper, Typography, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
-const Tile = ({ title, description, imageSrc }) => {
+const Tile = ({ title, description, imageSrc, route = '' }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (route) {
+      navigate(route);
+    }
+  };
 
   return (
     <Paper
@@ -14,10 +22,11 @@ const Tile = ({ title, description, imageSrc }) => {
         overflow: 'hidden',
         position: 'relative',
         transition: 'all 0.2s ease-out',
-        cursor: 'pointer',
+        cursor: route ? 'pointer' : 'default',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick}
     >
       {/* Image Section */}
       <Box
@@ -27,7 +36,7 @@ const Tile = ({ title, description, imageSrc }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          bgcolor: 'LightGray',
+          bgcolor: 'white',
         }}
       >
         <img 

@@ -144,6 +144,47 @@ export const buildGraph = (buildings) => {
   return graph;
 };
 
+
+export const calculateResourceFlow = (graph, startNodeId, multipliers, globalBuff) => {
+  const flow = { ratios: {}, relevantBuildings: new Set(), requiredAmounts: {} };
+  const visited = new Set();
+
+  const dfs = (nodeId, requiredAmount = 1) => {
+    flow.relevantBuildings.add(nodeId);
+    
+    const node = graph[nodeId];
+    const nodeMultiplier = (multipliers[nodeId] || 1) + globalBuff;
+    
+    // Initialize or update the required amount for this node
+    flow.requiredAmounts[nodeId] = (flow.requiredAmounts[nodeId] || 0) + requiredAmount;
+    
+    // Only process inputs if we haven't visited this node or if we need more of its output
+    if (!visited.has(nodeId) || flow.requiredAmounts[nodeId] > flow.ratios[nodeId]) {
+      visited.add(nodeId);
+      
+      // Calculate the ratio for this node
+      const outputAmount = Object.values(node.building.output)[0] * nodeMultiplier;
+      flow.ratios[nodeId] = flow.requiredAmounts[nodeId] / outputAmount;
+
+      // Recurse through input edges
+      for (const [inputResource, inputAmount] of Object.entries(node.building.input)) {
+        for (const inNodeId of node.inEdges) {
+          const inNode = graph[inNodeId];
+          if (inputResource in inNode.building.output) {
+            const requiredInputAmount = inputAmount * flow.ratios[nodeId];
+            dfs(inNodeId, requiredInputAmount);
+          }
+        }
+      }
+    }
+  };
+
+  dfs(startNodeId);
+  return flow;
+};
+
+/*
+
 export const calculateResourceFlow = (graph, startNodeId, multipliers, globalBuff) => {
   const flow = { ratios: {}, relevantBuildings: new Set() };
   const visited = new Set();
@@ -179,7 +220,7 @@ export const calculateResourceFlow = (graph, startNodeId, multipliers, globalBuf
   dfs(startNodeId);
   return flow;
 };
-
+*/
 export const processChainData = (flow, graph) => {
   return Array.from(flow.relevantBuildings).map(buildingId => {
     const building = graph[buildingId].building;
@@ -188,7 +229,8 @@ export const processChainData = (flow, graph) => {
       name: building.name,
       input: formatResourceObject(building.input),
       output: formatResourceObject(building.output),
-      ratio: flow.ratios[buildingId] 
+      ratio: flow.ratios[buildingId],
+      requiredAmount: flow.requiredAmounts[buildingId]
     };
   }).sort((a, b) => a.name.localeCompare(b.name));
 };

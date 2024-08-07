@@ -19,7 +19,7 @@ const homeConfig = [
     header: 'Games',
     items: [
       { text: 'CivIdle', path: '/cividle', icon: GamesIcon },
-      { text: 'Terraforming Mars', path: '/terraforming-mars', icon: GamesIcon },
+      //{ text: 'Terraforming Mars', path: '/terraforming-mars', icon: GamesIcon },
     ]
   }
 ];
@@ -36,10 +36,10 @@ const civIdleConfig = [
     items: [
       { text: 'GP Efficiency', path: '/cividle/gp-efficient', icon: DashboardIcon },
       { text: 'Science Time', path: '/cividle/science', icon: ScienceIcon },
-      { text: 'Idle Era Time', path: '/CivIdle/eratime', icon: TimeIcon },
+      { text: 'Idle Era Time', path: '/cividle/eratime', icon: TimeIcon },
 	  { text: 'EV Values', path: '/cividle/ev', icon: LinesIcon },
 	  { text: 'Product Chain Calc', path: '/cividle/chaincalc', icon: RepeatIcon },
-	  //{ text: 'Idle Era Time', path: '', icon: TrendingUpIcon },
+	  { text: 'Science Vs Workers', path: '/cividle/scivsworker', icon: ScienceIcon },
 	  
     ]
   }

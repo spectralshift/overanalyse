@@ -15,7 +15,7 @@ const CivIdleGPEfficient = React.lazy(() => import('./pages/cividle/GPEfficient'
 const CivIdleIdleEraCalc = React.lazy(() => import('./pages/cividle/IdleEraTime'));
 const CivIdleEVValues = React.lazy(() => import('./pages/cividle/EVValues'));
 const CivIdleProductionChainCalc = React.lazy(() => import('./pages/cividle/ProductChainCalc'));
-
+const CivIdleScienceVsWorker = React.lazy(() => import('./pages/cividle/ScienceBuildVsWorker'));
 
 
 
@@ -30,15 +30,13 @@ function App() {
             <Suspense fallback={<Loading />}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/CivIdle" element={<CivIdlePage />} />
+                <Route path="/cividle" element={<CivIdlePage />} />
 				<Route path="/cividle/science" element={<CivIdleScienceCalculator />} />
 				<Route path="/cividle/gp-efficient" element={<CivIdleGPEfficient />} />
-                <Route path="/CivIdle/eratime" element={<CivIdleIdleEraCalc />} />
+                <Route path="/civIdle/eratime" element={<CivIdleIdleEraCalc />} />
 				<Route path="/cividle/ev" element={<CivIdleEVValues />} />
 				<Route path="/cividle/chaincalc" element={<CivIdleProductionChainCalc />} />				
-				
-				
-				
+				<Route path="/cividle/scivsworker" element={<CivIdleScienceVsWorker />} />					
               </Routes>
             </Suspense>
           </Layout>

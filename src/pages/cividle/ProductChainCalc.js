@@ -1,40 +1,65 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { TextField, Select, MenuItem, Grid, Typography, Paper, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, FormControlLabel } from '@mui/material';
-import { buildGraph, calculateResourceFlow, processChainData } from '../../utils/cividlehelpers';
+import { RadioGroup, Radio, TextField, Select, MenuItem, Grid, Typography, Paper, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, FormControlLabel, Button } from '@mui/material';
+import { buildGraph, calculateCombinedResourceFlow, calculateUniqueResourceFlow, processChainData, calculateBuildings, calculateAdjustedProduction, calculateSubtotal, calculateDividedSubtotal, calculateEstimatedOutput } from './productChainUtils';
 import buildingsData from '../../data/buildingData.json';
+import ProductChainGraph from './ProductChainGraph';
+import { Modal } from '@mui/material';
+
 
 const ProductChainCalc = () => {
-  const [selectedBuilding, setSelectedBuilding] = useState('');
-  const [chain, setChain] = useState([]);
-  const [multipliers, setMultipliers] = useState({});
-  const [graph, setGraph] = useState(null);
-  const [showAllItems, setShowAllItems] = useState(false);
-  const [globalBuff, setGlobalBuff] = useState(0);
-  const [buildingCount, setBuildingCount] = useState('');
-  const [buildingLevel, setBuildingLevel] = useState('');
-  const [totalBuildingLevels, setTotalBuildingLevels] = useState('');
-  const [specificBuildingLevels, setSpecificBuildingLevels] = useState({});
+	const [state, setState] = useState({
+		selectedBuilding: '',
+		chain: [],
+		multipliers: {},
+		globalBuff: 0,
+		buildingCount: '',
+		buildingLevel: '',
+		specificBuildingLevels: {},
+		totalBuildingLevels: null,  // Add this if you're using it
+		});
+	const [showAllItems, setShowAllItems] = useState(false);
+	const [showGraph, setShowGraph] = useState(false);
+	const [graph, setGraph] = useState(null);
+	const [calculationMode, setCalculationMode] = useState('unique');
+	useEffect(() => 
+	{
+		setGraph(buildGraph(buildingsData));
+	}, []);
 
-  useEffect(() => {
-    setGraph(buildGraph(buildingsData));
-  }, []);
-
-  const calculateChain = () => {
-    const flow = calculateResourceFlow(graph, selectedBuilding, multipliers, globalBuff);
-    const chainData = processChainData(flow, graph);
-    setChain(chainData);
-  };
-
-  useEffect(() => {
-    if (selectedBuilding && graph) {
-      calculateChain();
+useEffect(() => {
+  if (state.selectedBuilding && graph) {
+    let flow;
+    if (calculationMode === 'unique') {
+      flow = calculateUniqueResourceFlow(
+        graph, 
+        state.selectedBuilding, 
+        state.multipliers, 
+        state.globalBuff,
+        parseInt(state.buildingCount) || 1,
+        parseInt(state.buildingLevel) || 1
+      );
+    } else {
+      flow = calculateCombinedResourceFlow(
+        graph, 
+        state.selectedBuilding, 
+        state.multipliers, 
+        state.globalBuff,
+        parseInt(state.buildingCount) || 1,
+        parseInt(state.buildingLevel) || 1
+      );
     }
-  }, [selectedBuilding, multipliers, graph, globalBuff, buildingCount, buildingLevel, totalBuildingLevels]);
+    const chainData = processChainData(flow, graph, state);
+    setState(prevState => ({ ...prevState, chain: chainData }));
+  }
+}, [state.selectedBuilding, state.multipliers, graph, state.globalBuff, state.buildingCount, state.buildingLevel, state.specificBuildingLevels, calculationMode]);
 
   const handleMultiplierChange = (buildingId, value) => {
-    setMultipliers(prev => ({
-      ...prev,
-      [buildingId]: parseFloat(value) || 1
+    setState(prevState => ({
+      ...prevState,
+      multipliers: {
+        ...prevState.multipliers,
+        [buildingId]: parseFloat(value) || 1
+      }
     }));
   };
 
@@ -44,57 +69,19 @@ const ProductChainCalc = () => {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [showAllItems]);
 
-  const getBuildingLevels = () => {
-    if (totalBuildingLevels) return parseInt(totalBuildingLevels);
-    if (buildingCount && buildingLevel) return parseInt(buildingCount) * parseInt(buildingLevel);
-    return 1;
-  };
-
-  const formatRatio = (ratio) => {
-    return ratio.toFixed(3).replace(/\.?0+$/, '');
-  };
-
-  const calculateSubtotal = () => {
-    return Math.ceil(chain.reduce((sum, row) => sum + row.ratio * getBuildingLevels(), 0));
-  };
-
-  const calculateDividedSubtotal = () => {
-    const subtotal = calculateSubtotal();
-    const divisor = buildingLevel ? parseInt(buildingLevel) : 20;
-    return Math.ceil(subtotal / divisor);
-  };
-
-  const calculateEstimatedOutput = () => {
-    if (!selectedBuilding || chain.length === 0) return null;
-    
-    const selectedBuildingData = chain.find(item => item.id === selectedBuilding);
-    if (!selectedBuildingData) return null;
-
-    const buildingLevels = Math.ceil(selectedBuildingData.ratio * getBuildingLevels());
-    const buildingMultiplier = multipliers[selectedBuilding] || 1;
-    
-    return Math.ceil((buildingMultiplier + globalBuff) * buildingLevels);
-  };
-
-const handleSpecificBuildingLevelChange = (buildingId, value) => {
-    setSpecificBuildingLevels(prev => ({
-      ...prev,
-      [buildingId]: value === '' ? null : parseInt(value)
+  const handleSpecificBuildingLevelChange = (buildingId, value) => {
+    setState(prevState => ({
+      ...prevState,
+      specificBuildingLevels: {
+        ...prevState.specificBuildingLevels,
+        [buildingId]: value === '' ? null : parseInt(value)
+      }
     }));
   };
 
-  const getBuildingLevelForCalculation = (buildingId) => {
-    if (specificBuildingLevels[buildingId]) return specificBuildingLevels[buildingId];
-    if (buildingLevel) return parseInt(buildingLevel);
-    return 1;
+  const handleInputChange = (field, value) => {
+    setState(prevState => ({ ...prevState, [field]: value }));
   };
-
-  const calculateBuildings = (ratio, buildingId) => {
-    const levels = Math.ceil(ratio * getBuildingLevels());
-    const buildingLevel = getBuildingLevelForCalculation(buildingId);
-    return Math.ceil(levels / buildingLevel);
-  };
-
 
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
@@ -103,8 +90,8 @@ const handleSpecificBuildingLevelChange = (buildingId, value) => {
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6}>
             <Select
-              value={selectedBuilding}
-              onChange={(e) => setSelectedBuilding(e.target.value)}
+              value={state.selectedBuilding}
+              onChange={(e) => handleInputChange('selectedBuilding', e.target.value)}
               fullWidth
             >
               <MenuItem value="">
@@ -130,8 +117,8 @@ const handleSpecificBuildingLevelChange = (buildingId, value) => {
             <TextField
               label="Main Building Count"
               type="number"
-              value={buildingCount}
-              onChange={(e) => setBuildingCount(e.target.value)}
+              value={state.buildingCount}
+              onChange={(e) => handleInputChange('buildingCount', e.target.value)}
               fullWidth
               inputProps={{ min: "0", step: "1" }}
             />
@@ -140,18 +127,8 @@ const handleSpecificBuildingLevelChange = (buildingId, value) => {
             <TextField
               label="Main Building Level"
               type="number"
-              value={buildingLevel}
-              onChange={(e) => setBuildingLevel(e.target.value)}
-              fullWidth
-              inputProps={{ min: "0", step: "1" }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="(Override) Total Building Levels"
-              type="number"
-              value={totalBuildingLevels}
-              onChange={(e) => setTotalBuildingLevels(e.target.value)}
+              value={state.buildingLevel}
+              onChange={(e) => handleInputChange('buildingLevel', e.target.value)}
               fullWidth
               inputProps={{ min: "0", step: "1" }}
             />
@@ -160,18 +137,34 @@ const handleSpecificBuildingLevelChange = (buildingId, value) => {
             <TextField
               label="Global Buff"
               type="number"
-              value={globalBuff}
-              onChange={(e) => setGlobalBuff(parseInt(e.target.value) || 0)}
+              value={state.globalBuff}
+              onChange={(e) => handleInputChange('globalBuff', parseInt(e.target.value) || 0)}
               fullWidth
               inputProps={{ min: "0", step: "1" }}
             />
           </Grid>
+		  <RadioGroup
+			row
+			value={calculationMode}
+			onChange={(e) => setCalculationMode(e.target.value)}
+		  >
+			<FormControlLabel value="unique" control={<Radio />} label="Unique Nodes" />
+			<FormControlLabel value="combined" control={<Radio />} label="Combined Nodes" />
+		  </RadioGroup>
         </Grid>
       </Box>
       
-      {chain.length > 0 && (
+      {state.chain.length > 0 && (
         <>
-                  <TableContainer component={Paper}>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={() => setShowGraph(true)}
+            sx={{ mt: 2, mb: 2 }}
+          >
+            Show Visual Graph
+          </Button>
+          <TableContainer component={Paper}>
             <Table size="small">
               <TableHead>
                 <TableRow>
@@ -180,20 +173,21 @@ const handleSpecificBuildingLevelChange = (buildingId, value) => {
                   <TableCell>Output</TableCell>
                   <TableCell>Building Specific Multiplier</TableCell>
                   <TableCell>Specific Building Level</TableCell>
-                  <TableCell>Buildings</TableCell>
-                  <TableCell>Building Levels</TableCell>
+                  <TableCell>Total Building Levels</TableCell>
+                  <TableCell>Estimated Buildings</TableCell>
+                
                 </TableRow>
               </TableHead>
               <TableBody>
-                {chain.map((row) => (
+                {state.chain.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>{row.name}</TableCell>
-                    <TableCell style={{ whiteSpace: 'pre-line' }}>{row.input}</TableCell>
-                    <TableCell style={{ whiteSpace: 'pre-line' }}>{row.output}</TableCell>
+                    <TableCell style={{ whiteSpace: 'pre-line' }}>{row.input.map(i => `${i.resource}: ${i.amount}`).join('\n')}</TableCell>
+                    <TableCell style={{ whiteSpace: 'pre-line' }}>{row.output.map(o => `${o.resource}: ${o.amount}`).join('\n')}</TableCell>
                     <TableCell>
                       <TextField
                         type="number"
-                        value={multipliers[row.id] || 1}
+                        value={state.multipliers[row.id] || 1}
                         onChange={(e) => handleMultiplierChange(row.id, e.target.value)}
                         inputProps={{ min: "1", step: "0.1", style: { width: '80px' } }}
                       />
@@ -201,13 +195,13 @@ const handleSpecificBuildingLevelChange = (buildingId, value) => {
                     <TableCell>
                       <TextField
                         type="number"
-                        value={specificBuildingLevels[row.id] || ''}
+                        value={state.specificBuildingLevels[row.id] || ''}
                         onChange={(e) => handleSpecificBuildingLevelChange(row.id, e.target.value)}
                         inputProps={{ min: "1", step: "1", style: { width: '80px' } }}
                       />
                     </TableCell>
-                    <TableCell>{calculateBuildings(row.ratio, row.id)}</TableCell>
-                    <TableCell>{Math.ceil(row.ratio * getBuildingLevels())}</TableCell>
+                    <TableCell>{row.requiredLevels.toFixed(0)}</TableCell>
+                    <TableCell>{row.estimatedBuildings}</TableCell>            
                   </TableRow>
                 ))}
               </TableBody>
@@ -215,19 +209,49 @@ const handleSpecificBuildingLevelChange = (buildingId, value) => {
           </TableContainer>
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="subtitle1">
-              {selectedBuilding && `${buildingsData.find(b => b.id === selectedBuilding)?.name} Estimated Output: ${calculateEstimatedOutput()}`}
+              {state.selectedBuilding && `${buildingsData.find(b => b.id === state.selectedBuilding)?.name} Estimated Output: ${calculateEstimatedOutput(state.chain.find(node => node.id === state.selectedBuilding), state)}`}
             </Typography>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Typography variant="subtitle1">
-                Total Building Levels (Est): {calculateSubtotal()}
+                Total Building Levels (Est): {calculateSubtotal(state.chain, state)}
               </Typography>
               <Typography variant="subtitle1">
-                Total Buildings (Est): {calculateDividedSubtotal()}
+                Total Buildings (Est): {calculateDividedSubtotal(state.chain, state)}
               </Typography>
             </Box>
           </Box>
         </>
       )}
+
+     <Modal
+  open={showGraph}
+  onClose={() => setShowGraph(false)}
+  aria-labelledby="product-chain-graph-modal"
+  aria-describedby="product-chain-graph-description"
+>
+  <Box sx={{
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '90%',
+    height: '90%',
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p: 4,
+  }}>
+<ProductChainGraph 
+  chain={state.chain}
+  onClose={() => setShowGraph(false)}
+  globalBuff={state.globalBuff}
+  multipliers={state.multipliers}
+  selectedBuilding={state.selectedBuilding}
+  buildingCount={parseInt(state.buildingCount) || 1}
+  buildingLevel={parseInt(state.buildingLevel) || 1}
+  specificBuildingLevels={state.specificBuildingLevels}
+/>
+  </Box>
+</Modal>
     </Paper>
   );
 };
