@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@mui/material';
 import { csv } from 'd3-fetch';
+import PageHeader from '../../components/PageHeader';
+
+const PAGE_TITLE = "Empire Value Table";
+const PAGE_DESCRIPTION = "A simple sortable table showing the Value of all items in the game."
+
 
 const EVValues = () => {
   const [data, setData] = useState([]);
@@ -38,7 +43,7 @@ const EVValues = () => {
 
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom>CivIdle EV Values</Typography>
+      <PageHeader title={PAGE_TITLE} description={PAGE_DESCRIPTION} />
       <TableContainer component={Paper}>
         <Table>
           <TableHead>

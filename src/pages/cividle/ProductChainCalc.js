@@ -4,6 +4,11 @@ import { buildGraph, calculateCombinedResourceFlow, calculateUniqueResourceFlow,
 import buildingsData from '../../data/buildingData.json';
 import ProductChainGraph from './ProductChainGraph';
 import { Modal } from '@mui/material';
+import PageHeader from '../../components/PageHeader';
+
+const PAGE_TITLE = "Production Chain Calculator and Display";
+const PAGE_DESCRIPTION = "This page allows you to see the breakdown of the production chain required to generate a good. Select the building you want to build and its dependencies will be calculated. Click on the 'Show Visual Graph' to see a visualization of the chain."
+
 
 
 const ProductChainCalc = () => {
@@ -85,7 +90,7 @@ useEffect(() => {
 
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom>Product Chain Calculator</Typography>
+      <PageHeader title={PAGE_TITLE} description={PAGE_DESCRIPTION} />  
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6}>
@@ -249,6 +254,7 @@ useEffect(() => {
   buildingCount={parseInt(state.buildingCount) || 1}
   buildingLevel={parseInt(state.buildingLevel) || 1}
   specificBuildingLevels={state.specificBuildingLevels}
+  calculationMode={calculationMode}
 />
   </Box>
 </Modal>

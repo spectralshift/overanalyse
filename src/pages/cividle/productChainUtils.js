@@ -3,15 +3,8 @@ import { BuildingData, ChainNode, ProductChainState } from './productChainTypes'
 export function buildGraph(buildingsData: BuildingData[]): Map<string, BuildingData> {
   return new Map(buildingsData.map(building => [building.id, building]));
 }
-/* The original, unique version, that did not add correctly.
-export function calculateResourceFlow(
-  graph,
-  selectedBuilding,
-  multipliers,
-  globalBuff,
-  buildingCount,
-  buildingLevel
-) {
+
+export function calculateUniqueResourceFlow(graph, selectedBuilding, multipliers, globalBuff, buildingCount, buildingLevel) {
   const result = [];
   const queue = [[selectedBuilding, buildingCount * buildingLevel, null]];
   const visited = new Set();
@@ -21,46 +14,6 @@ export function calculateResourceFlow(
     if (visited.has(currentBuildingId)) continue;
     visited.add(currentBuildingId);
 
-    const building = graph.get(currentBuildingId);
-    if (!building) continue;
-
-    const node = {
-      id: building.id,
-      name: building.name,
-      input: Object.entries(building.input).map(([resource, amount]) => ({ resource, amount })),
-      output: Object.entries(building.output).map(([resource, amount]) => ({ resource, amount })),
-      requiredLevels,
-      parentId,
-      buildingCount: 0,
-      multiplier: multipliers[building.id] || 1,
-      specificBuildingLevel: null,
-    };
-
-    result.push(node);
-
-    // Calculate required levels for input buildings
-    Object.entries(building.input).forEach(([inputResource, inputAmount]) => {
-      const inputBuilding = Array.from(graph.values()).find(b => Object.keys(b.output).includes(inputResource));
-      if (inputBuilding) {
-        const inputRequiredAmount = requiredLevels * inputAmount;
-        const inputBuildingOutput = inputBuilding.output[inputResource];
-        const inputBuildingMultiplier = (multipliers[inputBuilding.id] || 1) + globalBuff;
-        const inputRequiredLevels = inputRequiredAmount / (inputBuildingOutput * inputBuildingMultiplier);
-        queue.push([inputBuilding.id, inputRequiredLevels, currentBuildingId]);
-      }
-    });
-  }
-
-  return result;
-}
-*/
-
-export function calculateUniqueResourceFlow(graph, selectedBuilding, multipliers, globalBuff, buildingCount, buildingLevel) {
-  const result = [];
-  const queue = [[selectedBuilding, buildingCount * buildingLevel, null]];
-
-  while (queue.length > 0) {
-    const [currentBuildingId, requiredLevels, parentId] = queue.shift();
     const building = graph.get(currentBuildingId);
     if (!building) continue;
 

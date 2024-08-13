@@ -1,8 +1,14 @@
-// src/pages/cividle/IdleEraTime.js
-
 import React, { useState, useEffect } from 'react';
-import { TextField, Typography, Paper, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { TextField, Typography, Paper, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid } from '@mui/material';
 import { getEraData } from '../../utils/cividlehelpers';
+import PageHeader from '../../components/PageHeader';
+import TooltipTextField from '../../components/TooltipTextField';
+
+const PAGE_TITLE = "Idle to Era Calculator";
+const PAGE_DESCRIPTION = "This calculates the amount of time it takes to get to each Era based on your starting science."
+
+
+
 
 const IdleEraTime = () => {
   const [sciencePerSec, setSciencePerSec] = useState('');
@@ -19,9 +25,11 @@ const IdleEraTime = () => {
 
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom>CivIdle Era Time Calculator</Typography>
+      <PageHeader title={PAGE_TITLE} description={PAGE_DESCRIPTION} />
       <Box sx={{ mb: 3, bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
-        <TextField
+          <Grid item xs={12} sm={8}>
+            <TooltipTextField
+			tooltip="Enter the amount of science you have on rebirth."
           label="Science/sec"
           type="number"
           value={sciencePerSec}
@@ -29,7 +37,8 @@ const IdleEraTime = () => {
           variant="outlined"
           fullWidth
           inputProps={{ step: 'any' }}
-        />
+            />
+          </Grid>
       </Box>
       {eraData.length > 0 && (
         <TableContainer component={Paper}>

@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { TextField, Select, MenuItem, Grid, Typography, Paper, Box } from '@mui/material';
 import { calculateScienceTime } from '../../utils/cividlehelpers';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PageHeader from '../../components/PageHeader';
+
+const PAGE_TITLE = "Science Time Calculator";
+const PAGE_DESCRIPTION = "This calculator tells you how long it will take to get to the required science."
+
+
 
 const ScienceTimeCalc = () => {
   const [values, setValues] = useState(['', '', '']);
@@ -31,7 +37,7 @@ const ScienceTimeCalc = () => {
 
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom>CivIdle Science Calculator</Typography>
+      <PageHeader title={PAGE_TITLE} description={PAGE_DESCRIPTION} />
       <Box sx={{ mb: 3, bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
         {[0, 1, 2].map((index) => (
           <Grid container spacing={2} key={index} alignItems="center" sx={{ mb: 2 }}>

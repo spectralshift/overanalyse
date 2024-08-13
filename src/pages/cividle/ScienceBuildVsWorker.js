@@ -9,6 +9,12 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import PageHeader from '../../components/PageHeader';
+
+const PAGE_TITLE = "Idle Science vs Science Buildings";
+const PAGE_DESCRIPTION = "This calculator compares Idle Science buildings (Apartments, Condos) against science buildings. The graphs will show the peak science over a range of buildings built. The result is a ratio between the two buildings. Use this calculator to compare different build options at different stages of the game. Note that this does not currently account for bonuses that are not global, such as Sagrada and Statue of Liberty."
+
+
 
 const ScienceBuildVsWorker = () => {
   const [idleScience, setIdleScience] = useState('');
@@ -26,6 +32,7 @@ const ScienceBuildVsWorker = () => {
 
   const [graphData, setGraphData] = useState({
     apartmentsVsSchools: [],
+	apartmentsVsResearchLabs: [],
     condosVsResearchLabs: [],
     condosVsResearchFunds: [],
   });
@@ -113,74 +120,126 @@ const ScienceBuildVsWorker = () => {
     };
   };
 
-  useEffect(() => {
-   setResults(calculateResults(1)); // Set initial results for 1 building
+ useEffect(() => {
+  setResults(calculateResults(1)); // Set initial results for 1 building
 
-    const happinessBudgetValue = parseFloat(happinessBudget) || 100;
-    const maxBuildings = happinessBudgetValue + 50;
-    const newGraphData = {
-      apartmentsVsSchools: [],
-      condosVsResearchLabs: [],
-      condosVsComputerLabs: [],
-	  condosVsResearchFunds: [],
-    };
+  const happinessBudgetValue = parseFloat(happinessBudget) || 100;
+  const maxBuildings = happinessBudgetValue + 50;
+  const newGraphData = {
+    apartmentsVsSchools: [],
+	apartmentsVsResearchLabs: [],
+    condosVsResearchLabs: [],
+    condosVsComputerLabs: [],
+    condosVsResearchFunds: [],
+  };
 
-for (let i = 0; i <= maxBuildings; i++) {
-      const results = calculateResults(i);
+  // Calculate raw data and find max values for each graph
+  const maxValues = {
+    apartmentsVsSchools: 0,
+	apartmentsVsResearchLabs: 0,
+    condosVsResearchLabs: 0,
+    condosVsComputerLabs: 0,
+    condosVsResearchFunds: 0,
+  };
 
-      newGraphData.apartmentsVsSchools.push({
-        buildings: i,
-        apartments: results.apartments,
-        schools: results.rSchools,
+  for (let i = 0; i <= maxBuildings; i++) {
+    const results = calculateResults(i);
+    
+	const apartmentsValue = Math.max(0, results.apartments);
+	const schoolsValue = Math.max(0, results.rSchools);
+	const condosValue = Math.max(0, results.condos);
+	const researchLabsValue = Math.max(0, results.rLabs);
+	const computerLabsValue = Math.max(0, results.cLabs);
+	const researchFundsValue = Math.max(0, results.rFunds);
+	
+    maxValues.apartmentsVsSchools = Math.max(maxValues.apartmentsVsSchools, apartmentsValue, schoolsValue);
+
+    maxValues.apartmentsVsResearchLabs = Math.max(maxValues.apartmentsVsResearchLabs, apartmentsValue, researchLabsValue);
+	
+    maxValues.condosVsResearchLabs = Math.max(maxValues.condosVsResearchLabs, condosValue, researchLabsValue);
+
+    maxValues.condosVsComputerLabs = Math.max(maxValues.condosVsComputerLabs, condosValue, computerLabsValue);
+
+    maxValues.condosVsResearchFunds = Math.max(maxValues.condosVsResearchFunds, condosValue, researchFundsValue);
+
+    // Store raw data
+    newGraphData.apartmentsVsSchools.push({
+      buildings: i,
+      apartments: apartmentsValue,
+      schools: schoolsValue,
+    });
+	
+	newGraphData.apartmentsVsResearchLabs.push({
+      buildings: i,
+      apartments: apartmentsValue,
+      researchLabs: researchLabsValue,
+    });
+
+    newGraphData.condosVsResearchLabs.push({
+      buildings: i,
+      condos: condosValue,
+      researchLabs: researchLabsValue,
+    });
+
+    newGraphData.condosVsComputerLabs.push({
+      buildings: i,
+      condos: condosValue,
+      computerLabs: computerLabsValue,
+    });
+
+    newGraphData.condosVsResearchFunds.push({
+      buildings: i,
+      condos: condosValue,
+      researchFunds: researchFundsValue,
+    });
+  }
+
+  // Normalize data for each graph separately
+  Object.keys(newGraphData).forEach(graphKey => {
+    newGraphData[graphKey] = newGraphData[graphKey].map(data => {
+      const normalizedData = { buildings: data.buildings };
+      Object.keys(data).forEach(key => {
+        if (key !== 'buildings') {
+          normalizedData[key] = data[key] / maxValues[graphKey];
+        }
       });
+      return normalizedData;
+    });
+  });
 
-      newGraphData.condosVsResearchLabs.push({
-        buildings: i,
-        condos: results.condos,
-        researchLabs: results.rLabs,
-      });
-	  
-	  newGraphData.condosVsComputerLabs.push({
-        buildings: i,
-        condos: results.condos,
-        computerLabs: results.cLabs,
-      });
-	  
+  setGraphData(newGraphData);
+}, [idleScience, happinessBudget, schoolBonus, researchLabsBonus, computerLabsBonus, researchFundsBonus, pyramidOfGiza, shendoahTower, cnTower, unitedNations, socialism, expansion]);
 
-      newGraphData.condosVsResearchFunds.push({
-        buildings: i,
-        condos: results.condos,
-        researchFunds: results.rFunds,
-      });
-    }
-
-    setGraphData(newGraphData);
-  }, [idleScience, happinessBudget, schoolBonus, researchLabsBonus, computerLabsBonus, researchFundsBonus, pyramidOfGiza, shendoahTower, cnTower, unitedNations, socialism, expansion]);
-
-  const renderGraph = (data, title, line1Name, line2Name) => (
-    <Box sx={{ mt: 4 }}>
-      <Typography variant="h6" gutterBottom>{title}</Typography>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data} margin={{ top: 10, right: 20, left: 20, bottom: 15 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="buildings" 
-            label={{ value: 'Building Count', position: 'insideBottom', offset: -5 }} 
-			interval = {24}
-          />
-          <YAxis label={{ value: 'Total Science', angle: -90, position: 'insideLeft' }} />
-          <Tooltip />
-          <Legend verticalAlign="top" height={36}/>
-          <Line type="monotone" dataKey={line1Name} stroke="#8884d8" dot={false}/>
-          <Line type="monotone" dataKey={line2Name} stroke="#82ca9d" dot={false}/>
-        </LineChart>
-      </ResponsiveContainer>
-    </Box>
-  );
+const renderGraph = (data, title, line1Name, line2Name) => (
+  <Box sx={{ mt: 4 }}>
+    <Typography variant="h6" gutterBottom>{title}</Typography>
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={data} margin={{ top: 10, right: 20, left: 20, bottom: 15 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey="buildings" 
+          label={{ value: 'Building Count', position: 'insideBottom', offset: -5 }} 
+          interval={24}
+        />
+        <YAxis 
+          label={{ value: 'Normalized Science', angle: -90, position: 'insideLeft', dy: 60}}
+          domain={[0, 1]}
+          ticks={[0, 0.25, 0.5, 0.75, 1]}
+        />
+        <Tooltip 
+          formatter={(value) => value.toFixed(4)}
+        />
+        <Legend verticalAlign="top" height={36}/>
+        <Line type="monotone" dataKey={line1Name} stroke="#8884d8" dot={false}/>
+        <Line type="monotone" dataKey={line2Name} stroke="#82ca9d" dot={false}/>
+      </LineChart>
+    </ResponsiveContainer>
+  </Box>
+);
 
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom>Science Build vs Worker Calculator</Typography>
+      <PageHeader title={PAGE_TITLE} description={PAGE_DESCRIPTION} />
       <Box sx={{ mb: 3, bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
 
         <Grid container spacing={2}>
@@ -336,30 +395,9 @@ for (let i = 0; i <= maxBuildings; i++) {
         </Box>
       </Box>
       
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h6" gutterBottom>Calculation Results (for 1 building)</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <Typography>Schools: {results.rSchools.toFixed(0)}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography>Research Labs: {results.rLabs.toFixed(0)}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography>Computer Labs: {results.cLabs.toFixed(0)}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography>Research Funds: {results.rFunds.toFixed(0)}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography>Apartments: {results.apartments.toFixed(0)}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography>Condos: {results.condos.toFixed(0)}</Typography>
-          </Grid>
-        </Grid>
-      </Box>
+      
       {renderGraph(graphData.apartmentsVsSchools, "Apartments vs Schools", "apartments", "schools")}
+	  {renderGraph(graphData.apartmentsVsResearchLabs, "Apartments vs Research Labs", "apartments", "researchLabs")}
       {renderGraph(graphData.condosVsResearchLabs, "Condos vs Research Labs", "condos", "researchLabs")}
 	  {renderGraph(graphData.condosVsComputerLabs, "Condos vs Computer Labs", "condos", "computerLabs")}
       {renderGraph(graphData.condosVsResearchFunds, "Condos vs Research Funds", "condos", "researchFunds")}

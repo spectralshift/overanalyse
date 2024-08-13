@@ -1,6 +1,6 @@
 import eraData from '../data/eraData.json';
 
-export const calculateScienceTime = (values, units) => {
+export const convertInputUsingLetterUnitToNumber = (value, unit) => {
   const unitMultipliers = {
     'K': 1e3,
     'M': 1e6,
@@ -8,9 +8,37 @@ export const calculateScienceTime = (values, units) => {
     'T': 1e12,
     'Q': 1e15
   };
+  return parseFloat(value) * (unitMultipliers[unit] || 1);
+};
+
+export const convertNumberToDecimalLetterUnit = (number) => {
+  const units = ['', 'K', 'M', 'B', 'T', 'Q'];
+  let unitIndex = 0;
+  
+  while (number >= 1000 && unitIndex < units.length - 1) {
+    number /= 1000;
+    unitIndex++;
+  }
+  
+  // Determine the number of decimal places
+  let decimalPlaces = 2;
+  if (number >= 100) decimalPlaces = 1;
+  if (number >= 1000) decimalPlaces = 0;
+  
+  // Format the number
+  const formattedNumber = number.toFixed(decimalPlaces);
+  
+  // Remove trailing zeros after the decimal point
+  const trimmedNumber = formattedNumber.replace(/\.?0+$/, '');
+  
+  return `${trimmedNumber} ${units[unitIndex]}`.trim();
+};
+
+export const calculateScienceTime = (values, units) => {
+
 
   const [sciencePerSec, scienceSaved, scienceNeeded] = values.map((value, index) => 
-    parseFloat(value) * unitMultipliers[units[index]]
+    convertInputUsingLetterUnitToNumber(value, units[index])
   );
 
   if (sciencePerSec <= 0 || isNaN(scienceSaved) || isNaN(scienceNeeded)) {
@@ -19,7 +47,7 @@ export const calculateScienceTime = (values, units) => {
 
   const timeInTicks = Math.max(0, Math.round((scienceNeeded - scienceSaved) / sciencePerSec));
   
-  const timespan = formatTime(timeInTicks)
+  const timespan = formatTicksToDayHourMinuteSec(timeInTicks)
 
   return {
     ticks: timeInTicks,
@@ -27,85 +55,51 @@ export const calculateScienceTime = (values, units) => {
   };
 };
 
-export const calculateGPEfficiency = (currentGP, setupTime, evPerSecond, evUnit) => {
-  const unitMultipliers = {
-    'K': 1e-3,
-    'M': 1,
-    'B': 1e3,
-    'T': 1e6,
-    'Q': 1e9
-  };
+const getEVCostFromGPCount = (gpCount) => {
+	return parseFloat(Math.pow((gpCount*400), 3));
+};
 
-  const evPerSecondInMillions = parseFloat(evPerSecond) * unitMultipliers[evUnit];
-  const setupTimeFloat = parseFloat(setupTime);
+export const calculateGPEfficiency = (currentGP, setupTime, evPerSecond, evUnit) => {
+  const currentGPFloat = parseFloat(currentGP);
+  const setupTimeSeconds = parseFloat(setupTime) * 3600; // Convert hours to seconds
+  const evPerSecondValue = convertInputUsingLetterUnitToNumber(evPerSecond, evUnit);
+
+  const currentGPCountEVCost = getEVCostFromGPCount(currentGPFloat);
+  const timeToCurrentGPCountSeconds = currentGPCountEVCost / evPerSecondValue;
+  const adjustedRunTimeSeconds = setupTimeSeconds - timeToCurrentGPCountSeconds;
 
   const lineChart1Data = [];
   const lineChart2Data = [];
-  const debugData = [];
 
-  let peakEfficiencyX = 0;
-  let prevY1 = 0;
-
-  // Generate chart data for the full range
-  for (let x = 0; x <= 2000; x += 25) {
-    const baseCalculation = (64 * Math.pow(x, 3)) / evPerSecondInMillions / 3600;
-    const y1 = x / (baseCalculation + setupTimeFloat);
-    const y2 = baseCalculation + setupTimeFloat;
-
-    lineChart1Data.push({ x, y: y1 });
-    lineChart2Data.push({ x, y: y2 });
-
-    if (x % 200 === 0) {
-      debugData.push({ x, evPerSecondInMillions, baseCalculation, y1, y2 });
-    }
-
-    // Check for peak efficiency (only for x > 0 to avoid division by zero)
-    if (x > 0 && y1 < prevY1 && peakEfficiencyX === 0) {
-      peakEfficiencyX = x;
-    }
-
-    prevY1 = y1;
-  }
-
-  // Fine-tune the peak efficiency x value
-  if (peakEfficiencyX > 0) {
-
-    prevY1 = 0;
-    for (let x = (peakEfficiencyX - 25); x < peakEfficiencyX + 25; x++) {
-      const baseCalculation = (64 * Math.pow(x, 3)) / evPerSecondInMillions / 3600;
-      const y1 = x / (baseCalculation + setupTimeFloat);
-
-      if (y1 < prevY1) {
-        peakEfficiencyX = x - 1;
-        break;
-      }
-
-      prevY1 = y1;
-    }
+  for (let x = 0; x <= 3000; x += 1) {
+    const futureGPCount = currentGPFloat + x;
+    const costDifferenceEVCurrentToFuture = getEVCostFromGPCount(futureGPCount) - currentGPCountEVCost;
+    const timeDifferenceCurrentToFutureSeconds = costDifferenceEVCurrentToFuture / evPerSecondValue;
+    const projectedTotalRunTimeSecond = adjustedRunTimeSeconds + timeDifferenceCurrentToFutureSeconds;
+    const projectedTotalRunTimeHours = projectedTotalRunTimeSecond / 3600;
+    const futureGPperHour = futureGPCount / projectedTotalRunTimeHours;
+    lineChart1Data.push({ x: futureGPCount, y: futureGPperHour });
+    lineChart2Data.push({ x: futureGPCount, y: projectedTotalRunTimeHours });
   }
 
   return {
     lineChart1Data,
     lineChart2Data,
-    integerValue: peakEfficiencyX,
-    debugData,
-    inputValues: { currentGP, setupTime, evPerSecond, evUnit }
+    inputValues: { currentGP, setupTime, evPerSecond, evUnit },
   };
 };
-
-
 
 export const getEraData = (sciencePerSec) => {
   return eraData.slice(0, 20).map(era => {
     const timeToReach = Math.ceil(era.EraCost / sciencePerSec);
     return {
       ...era,
-      TimeToReach: formatTime(timeToReach)
+      TimeToReach: formatTicksToDayHourMinuteSec(timeToReach)
     };
   });
 };
 
-const formatTime = (seconds) => {
+const formatTicksToDayHourMinuteSec = (seconds) => {
   const days = Math.floor(seconds / 86400);
   const hours = Math.floor((seconds % 86400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -119,6 +113,12 @@ const formatTime = (seconds) => {
   if (remainingSeconds > 0 || parts.length === 0) parts.push(`${remainingSeconds}s`);
 
   return parts.join(' ');
+};
+
+export const eFormatTime = (hours) => {
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+  return `${days}d ${remainingHours.toFixed(2)}h`;
 };
 
 export const buildGraph = (buildings) => {
@@ -143,7 +143,6 @@ export const buildGraph = (buildings) => {
 
   return graph;
 };
-
 
 export const calculateResourceFlow = (graph, startNodeId, multipliers, globalBuff) => {
   const flow = { ratios: {}, relevantBuildings: new Set(), requiredAmounts: {} };
@@ -183,44 +182,6 @@ export const calculateResourceFlow = (graph, startNodeId, multipliers, globalBuf
   return flow;
 };
 
-/*
-
-export const calculateResourceFlow = (graph, startNodeId, multipliers, globalBuff) => {
-  const flow = { ratios: {}, relevantBuildings: new Set() };
-  const visited = new Set();
-
-  const dfs = (nodeId, requiredAmount = 1) => {
-    if (visited.has(nodeId)) return;
-    visited.add(nodeId);
-    flow.relevantBuildings.add(nodeId);
-
-    const node = graph[nodeId];
-    const nodeMultiplier = (multipliers[nodeId] || 1) + globalBuff;
-    
-    // Calculate the ratio for this node
-    if (nodeId === startNodeId) {
-      flow.ratios[nodeId] = 1; // The selected building always has a ratio of 1
-    } else {
-      const outputAmount = Object.values(node.building.output)[0] * nodeMultiplier;
-      flow.ratios[nodeId] = requiredAmount / outputAmount;
-    }
-
-    // Recurse through input edges
-    for (const [inputResource, inputAmount] of Object.entries(node.building.input)) {
-      for (const inNodeId of node.inEdges) {
-        const inNode = graph[inNodeId];
-        if (inputResource in inNode.building.output) {
-          const requiredInputAmount = inputAmount * flow.ratios[nodeId];
-          dfs(inNodeId, requiredInputAmount);
-        }
-      }
-    }
-  };
-
-  dfs(startNodeId);
-  return flow;
-};
-*/
 export const processChainData = (flow, graph) => {
   return Array.from(flow.relevantBuildings).map(buildingId => {
     const building = graph[buildingId].building;

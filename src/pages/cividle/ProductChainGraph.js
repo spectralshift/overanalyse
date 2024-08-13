@@ -42,14 +42,14 @@ const CustomNode = ({ data }) => (
     <div>
       {data.inputs && data.inputs.length > 0 && (
         <Typography variant="caption" component="div">
-          In: {data.inputs.map(input => `${input.resource}: ${Math.round(input.amount)}`).join(', ')}
+          {data.inputs.map(input => `${input.resource}: ${input.amount}`).join(', ')}
         </Typography>
       )}
     </div>
     <Typography variant="subtitle2" component="div">{data.label}</Typography>
     <div>
       <Typography variant="caption" component="div">
-        Out: {data.outputs.map(output => `${output.resource}: ${Math.round(output.amount)}`).join(', ')}
+        {data.outputs.map(output => `${output.resource}: ${output.amount}`).join(', ')}
       </Typography>
     </div>
     <Handle type="source" position={Position.Bottom} style={{ background: '#555' }} isConnectable={true} />
@@ -72,7 +72,8 @@ const ProductChainGraph = ({
   buildingCount,
   buildingLevel,
   totalBuildingLevels,
-  specificBuildingLevels
+  specificBuildingLevels,
+  calculationMode
 }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -112,57 +113,39 @@ const ProductChainGraph = ({
     };
   };
 
-  const createNodes = useMemo(() => {
-  return chain.map((item) => {
-    const buildingMultiplier = item.multiplier || 1;
-    const totalMultiplier = buildingMultiplier + globalBuff;
-    let requiredAmount = item.requiredLevels || 0;  // Use requiredLevels instead of requiredAmount
-
-    const buildingCount = Math.ceil(item.estimatedBuildings || 0);
-
-    const formattedInputs = item.input.map(input => ({
-      resource: input.resource,
-      amount: (input.amount * buildingCount).toFixed(2)
-    }));
-    
-    const formattedOutputs = item.output.map(output => ({
-      resource: output.resource,
-      amount: (output.amount * buildingCount * totalMultiplier).toFixed(2)
-    }));
-
-    return {
-      id: item.id,
-      type: 'custom',
-      data: { 
-        label: `${item.name} (x${buildingCount})`,
-        inputs: formattedInputs,
-        outputs: formattedOutputs,
-        requiredAmount: requiredAmount,
-      },
-      position: { x: 0, y: 0 },
-    };
-  });
-}, [chain, globalBuff]);
+const createNodes = useMemo(() => {
+  return chain.map((item, index) => ({
+    id: `${item.id}-${index}`, // Use a unique id for each node
+    type: 'custom',
+    data: { 
+      label: `${item.name} (x${item.estimatedBuildings || 1})`,
+      inputs: item.input,
+      outputs: item.output,
+      requiredAmount: item.requiredLevels || 0,
+      originalId: item.id, // Store the original id for edge creation
+    },
+    position: { x: 0, y: 0 },
+  }));
+}, [chain]);
 
 
 
-  const createEdges = useMemo(() => {
-    return chain.flatMap(item => {
-      return item.input.flatMap(input => {
-        const sourceNode = chain.find(node => 
-          node.output.some(output => output.resource === input.resource)
-        );
-
-        if (sourceNode) {
+const createEdges = useMemo(() => {
+  return chain.flatMap((item, itemIndex) => {
+   /* if (calculationMode === 'unique') {
+      // For unique mode, only connect to the immediate parent
+      if (item.parentId) {
+        const parentIndex = chain.findIndex(node => node.id === item.parentId);
+        if (parentIndex !== -1) {
           return [{
-            id: `e${sourceNode.id}-${item.id}-${input.resource}`,
-            source: sourceNode.id,
-            target: item.id,
+            id: `e${item.parentId}-${parentIndex}-${item.id}-${itemIndex}`,
+            source: `${item.parentId}-${parentIndex}`,
+            target: `${item.id}-${itemIndex}`,
             sourcePosition: Position.Bottom,
             targetPosition: Position.Top,
             type: BezierEdge,
             animated: false,
-            label: input.resource,
+            label: item.input[0]?.resource, // Assuming there's at least one input
             style: {
               stroke: '#777',
               strokeWidth: '1.5px',
@@ -173,16 +156,43 @@ const ProductChainGraph = ({
             },
           }];
         }
-        return [];
-      });
-    });
-  }, [chain]);
+      }
+      return [];
+    } else {*/
+      // For combined mode, use the existing logic
+      return item.input.flatMap(input => {
+        const sourceNodes = chain.map((node, nodeIndex) => ({...node, index: nodeIndex})).filter(node => 
+          node.output.some(output => output.resource === input.resource)
+        );
 
-  useEffect(() => {
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(createNodes, createEdges);
-    setNodes(layoutedNodes);
-    setEdges(layoutedEdges);
-  }, [chain, globalBuff, setNodes, setEdges]);
+        return sourceNodes.map(sourceNode => ({
+          id: `e${sourceNode.id}-${sourceNode.index}-${item.id}-${itemIndex}-${input.resource}`,
+          source: `${sourceNode.id}-${sourceNode.index}`,
+          target: `${item.id}-${itemIndex}`,
+          sourcePosition: Position.Bottom,
+          targetPosition: Position.Top,
+          type: BezierEdge,
+          animated: false,
+          label: input.resource,
+          style: {
+            stroke: '#777',
+            strokeWidth: '1.5px',
+          },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#888',
+          },
+        }));
+      });
+   // }
+  });
+}, [chain, calculationMode]);
+
+useEffect(() => {
+  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(createNodes, createEdges);
+  setNodes(layoutedNodes);
+  setEdges(layoutedEdges);
+}, [chain, globalBuff, calculationMode, setNodes, setEdges]);
 
   const onConnect = useCallback((params) => setEdges((eds) => [...eds, params]), [setEdges]);
 
