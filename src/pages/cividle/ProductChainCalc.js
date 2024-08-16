@@ -187,8 +187,8 @@ useEffect(() => {
                 {state.chain.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>{row.name}</TableCell>
-                    <TableCell style={{ whiteSpace: 'pre-line' }}>{row.input.map(i => `${i.resource}: ${i.amount}`).join('\n')}</TableCell>
-                    <TableCell style={{ whiteSpace: 'pre-line' }}>{row.output.map(o => `${o.resource}: ${o.amount}`).join('\n')}</TableCell>
+                    <TableCell style={{ whiteSpace: 'pre-line' }}>{row.input.map(i => `${i.resource}: ${i.amount.toFixed(0)}`).join('\n')}</TableCell>
+                    <TableCell style={{ whiteSpace: 'pre-line' }}>{row.output.map(o => `${o.resource}: ${o.amount.toFixed(0)}`).join('\n')}</TableCell>
                     <TableCell>
                       <TextField
                         type="number"
