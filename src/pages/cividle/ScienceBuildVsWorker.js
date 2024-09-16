@@ -112,7 +112,7 @@ const ScienceBuildVsWorker = () => {
 	
     return {
       rSchools: (parseFloat(schoolBonus) + 3 + calculateWonderBonus('rSchools')) * 400 * increment,
-      rLabs: (parseFloat(researchLabsBonus) + 2 + calculateWonderBonus('rLabs')) * 5000 * increment,
+      rLabs: (parseFloat(researchLabsBonus) + 2 + calculateWonderBonus('rLabs')) * 7500 * increment,
       cLabs: (parseFloat(computerLabsBonus) + 1 + calculateWonderBonus('cLabs')) * 79930 * increment,
       rFunds: (parseFloat(researchFundsBonus) + 2 + calculateWonderBonus('rFunds')) * 25940 * increment,
       apartments: ( 1 + calculateWonderBonus('apartments')) * 84 * parseFloat(idleScience) * happinessMultiplier * increment,
