@@ -3,10 +3,10 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './layout/Layout';
-import theme from './theme';
 import ErrorBoundary from './components/ErrorBoundary';
 import Loading from './components/Loading';
-
+import useMediaQuery from '@mui/material/useMediaQuery';
+import themeFactory from './theme/index';
 
 const HomePage = React.lazy(() => import('./pages/HomePage'));
 const CivIdlePage = React.lazy(() => import('./pages/CivIdle'));
@@ -21,6 +21,13 @@ const CivIdleScienceVsWorker = React.lazy(() => import('./pages/cividle/ScienceB
 
 
 function App() {
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+  const theme = React.useMemo(
+    () => themeFactory(prefersDarkMode ? 'dark' : 'light'),
+    [prefersDarkMode],
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

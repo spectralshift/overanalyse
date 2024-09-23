@@ -36,7 +36,6 @@ const Tile = ({ title, description, imageSrc, route = '' }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          bgcolor: 'white',
         }}
       >
         <img 
