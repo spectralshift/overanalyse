@@ -10,7 +10,7 @@ const Sidebar = () => {
   return (
     <Box sx={{ 
       width: 220, 
-      backgroundColor: '#f5f5f5', 
+      backgroundColor: 'background.elevated', 
       height: '100%',
       boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
       overflowY: 'auto',

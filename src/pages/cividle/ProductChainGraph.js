@@ -28,6 +28,7 @@ const CustomNode = ({ data }) => (
     background: '#eee',
     border: '1px solid #ddd',
     borderRadius: '50%',
+    color: '#202020',
     padding: '10px',
     width: '150px',
     height: '150px',
