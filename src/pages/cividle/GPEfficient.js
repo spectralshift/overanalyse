@@ -20,7 +20,7 @@ const GPEfficient = () => {
 	const EfficiencyTooltip = ({ active, payload, label }) => {
 	  if (active && payload && payload.length) {
 		return (
-		  <div style={{ backgroundColor: 'white', color: '#202020', padding: '10px', border: '1px solid #ccc' }}>
+		  <div style={{ backgroundColor: 'white', color: '#202020', padding: '3px', border: '1px solid #ccc' }}>
 			<p>{`GP Count: ${label}`}</p>
 			<p>{`Efficiency: ${payload[0].value.toFixed(2)} GP/Hour`}</p>
 		  </div>
@@ -32,7 +32,7 @@ const GPEfficient = () => {
 	const TimeTooltip = ({ active, payload, label }) => {
 	  if (active && payload && payload.length) {
 		return (
-		  <div style={{ backgroundColor: 'white', padding: '10px', border: '1px solid #ccc' }}>
+		  <div style={{ backgroundColor: 'white', padding: '3px', border: '1px solid #ccc' }}>
 			<p>{`GP Count: ${label}`}</p>
 			<p>{`Time: ${payload[0].value.toFixed(2)} Hours`}</p>
 		  </div>
@@ -104,7 +104,6 @@ const GPEfficient = () => {
             <Select
               value={evUnit}
               onChange={(e) => setEvUnit(e.target.value)}
-			  
               variant="outlined"
               size="small"
               fullWidth

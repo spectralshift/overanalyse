@@ -61,7 +61,7 @@ const getEVCostFromGPCount = (gpCount) => {
 
 export const calculateGPEfficiency = (currentGP, setupTime, evPerSecond, evUnit) => {
   const currentGPFloat = parseFloat(currentGP);
-  const setupTimeSeconds = parseFloat(setupTime) * 3600; // Convert hours to seconds
+  const setupTimeSeconds = parseFloat(setupTime) * 3600;
   const evPerSecondValue = convertInputUsingLetterUnitToNumber(evPerSecond, evUnit);
 
   const currentGPCountEVCost = getEVCostFromGPCount(currentGPFloat);
@@ -71,7 +71,34 @@ export const calculateGPEfficiency = (currentGP, setupTime, evPerSecond, evUnit)
   const lineChart1Data = [];
   const lineChart2Data = [];
 
-  for (let x = 0; x <= 3000; x += 1) {
+  let maxGPPerHour = 0;
+  let peakFound = false;
+  let peakIndex = 0;
+  let x = 0;
+  
+  // First, find the peak
+    while (!peakFound && x <= 15000) {
+    const futureGPCount = currentGPFloat + x;
+    const costDifferenceEVCurrentToFuture = getEVCostFromGPCount(futureGPCount) - currentGPCountEVCost;
+    const timeDifferenceCurrentToFutureSeconds = costDifferenceEVCurrentToFuture / evPerSecondValue;
+    const projectedTotalRunTimeSecond = adjustedRunTimeSeconds + timeDifferenceCurrentToFutureSeconds;
+    const projectedTotalRunTimeHours = projectedTotalRunTimeSecond / 3600;
+    const futureGPperHour = futureGPCount / projectedTotalRunTimeHours;
+
+    if (futureGPperHour < maxGPPerHour) {
+      peakFound = true;
+      peakIndex = x - 5; // The previous value was the peak
+    } else {
+      maxGPPerHour = futureGPperHour;
+    }
+    x += 5;
+  }
+
+  // Set the maximum to double the peak index
+  const maximumX = peakIndex * 2;
+
+  // Now generate the actual data points
+  for (let x = 0; x <= maximumX; x += 1) {
     const futureGPCount = currentGPFloat + x;
     const costDifferenceEVCurrentToFuture = getEVCostFromGPCount(futureGPCount) - currentGPCountEVCost;
     const timeDifferenceCurrentToFutureSeconds = costDifferenceEVCurrentToFuture / evPerSecondValue;
