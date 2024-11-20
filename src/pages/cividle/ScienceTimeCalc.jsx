@@ -34,6 +34,16 @@ const ScienceTimeCalc = () => {
     const calculatedResult = calculateScienceTime(newValues, newUnits);
     setResult(calculatedResult);
   };
+  
+  const handleKeyPress = (event, index) => {
+	  const key = event.key.toUpperCase();
+	  const validKeys = ['K', 'M', 'B', 'T', 'Q'];
+	  
+	  if (validKeys.includes(key)) {
+		handleUnitChange(index, key);
+		event.preventDefault();
+	  }
+	};
 
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
@@ -57,12 +67,13 @@ const ScienceTimeCalc = () => {
             </Grid>
             <Grid item xs={4} sm={3}>
               <Select
-                value={units[index]}
-                onChange={(e) => handleUnitChange(index, e.target.value)}
-                variant="outlined"
-                size="small"
-                fullWidth
-              >
+				  value={units[index]}
+				  onChange={(e) => handleUnitChange(index, e.target.value)}
+				  onKeyPress={(e) => handleKeyPress(e, index)}
+				  variant="outlined"
+				  size="small"
+				  fullWidth
+				>
                 {['K', 'M', 'B', 'T', 'Q'].map((unit) => (
                   <MenuItem key={unit} value={unit}>{unit}</MenuItem>
                 ))}

@@ -60,6 +60,8 @@ const GPEfficient = () => {
   useEffect(() => {
     updateChartData();
   }, [updateChartData]);
+  
+  
 
    return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
@@ -97,9 +99,12 @@ const GPEfficient = () => {
             />
           </Grid>
           <Grid item xs={4} sm={3}>
+		  
+		  
             <Select
               value={evUnit}
               onChange={(e) => setEvUnit(e.target.value)}
+			  
               variant="outlined"
               size="small"
               fullWidth
