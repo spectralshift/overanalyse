@@ -4,41 +4,81 @@ export function buildGraph(buildingsData: BuildingData[]): Map<string, BuildingD
   return new Map(buildingsData.map(building => [building.id, building]));
 }
 
-export function calculateUniqueResourceFlow(graph, selectedBuilding, multipliers, globalBuff, buildingCount, buildingLevel) {
+export function calculateUniqueResourceFlow(
+  graph,
+  selectedBuilding,
+  multipliers,
+  globalBuff,
+  buildingCount,
+  buildingLevel,
+  specificBuildingLevels = {}
+) {
   const result = [];
-  const queue = [[selectedBuilding, buildingCount * buildingLevel, null]];
-  const visited = new Set();
+  const queue = [[selectedBuilding, buildingCount * buildingLevel, null, 0]];
+  const visited = new Map();
+
+  function calculateRequiredInput(amount, buildingId) {
+    const buildingMultiplier = multipliers[buildingId] ?? 1;
+    const totalMultiplier = buildingMultiplier + globalBuff;
+    return amount / totalMultiplier;
+  }
 
   while (queue.length > 0) {
-    const [currentBuildingId, requiredLevels, parentId] = queue.shift();
-    if (visited.has(currentBuildingId)) continue;
-    visited.add(currentBuildingId);
+    const [currentBuildingId, requiredLevels, parentId, pathIndex] = queue.shift();
+    const uniqueNodeId = `${currentBuildingId}_${pathIndex}`;
+    
+    if (visited.has(uniqueNodeId)) continue;
+    visited.set(uniqueNodeId, true);
 
     const building = graph.get(currentBuildingId);
     if (!building) continue;
 
+    // First, establish the required output
+    const outputAmounts = Object.entries(building.output).map(([resource, amount]) => ({
+      resource,
+      amount: amount * requiredLevels
+    }));
+
+    // Then, calculate the required inputs based on building efficiency
+    const inputAmounts = Object.entries(building.input).map(([resource, amount]) => ({
+      resource,
+      amount: calculateRequiredInput(
+        amount * requiredLevels,
+        currentBuildingId
+      )
+    }));
+
     const node = {
-      id: building.id,
+      id: uniqueNodeId,
+      buildingId: currentBuildingId,
       name: building.name,
-      input: Object.entries(building.input).map(([resource, amount]) => ({ resource, amount: amount * requiredLevels })),
-      output: Object.entries(building.output).map(([resource, amount]) => ({ resource, amount: amount * requiredLevels })),
+      input: inputAmounts,
+      output: outputAmounts,
       requiredLevels,
       parentId,
       buildingCount: 1,
-      multiplier: multipliers[building.id] || 1,
-      specificBuildingLevel: null,
+      multiplier: multipliers[currentBuildingId] ?? 1
     };
 
     result.push(node);
 
-    Object.entries(building.input).forEach(([inputResource, inputAmount]) => {
-      const inputBuilding = Array.from(graph.values()).find(b => Object.keys(b.output).includes(inputResource));
+    let childPathIndex = pathIndex + 1;
+
+    // Process child nodes using the adjusted input requirements
+    inputAmounts.forEach(({ resource, amount }) => {
+      const inputBuilding = Array.from(graph.values()).find(b => 
+        Object.keys(b.output).includes(resource)
+      );
       if (inputBuilding) {
-        const inputRequiredAmount = requiredLevels * inputAmount;
-        const inputBuildingOutput = inputBuilding.output[inputResource];
-        const inputBuildingMultiplier = (multipliers[inputBuilding.id] || 1) + globalBuff;
-        const inputRequiredLevels = inputRequiredAmount / (inputBuildingOutput * inputBuildingMultiplier);
-        queue.push([inputBuilding.id, inputRequiredLevels, currentBuildingId]);
+        const inputBuildingOutput = inputBuilding.output[resource];
+        // Don't apply multiplier here as it will be handled in the next iteration
+        const inputRequiredLevels = amount / inputBuildingOutput;
+        queue.push([
+          inputBuilding.id, 
+          inputRequiredLevels, 
+          uniqueNodeId,
+          childPathIndex++
+        ]);
       }
     });
   }
@@ -46,100 +86,37 @@ export function calculateUniqueResourceFlow(graph, selectedBuilding, multipliers
   return result;
 }
 
-export function calculateCombinedResourceFlow(graph, selectedBuilding, multipliers, globalBuff, buildingCount, buildingLevel) {
-  const result = new Map();
-  const queue = [[selectedBuilding, buildingCount * buildingLevel, null]];
-
-  while (queue.length > 0) {
-    const [currentBuildingId, requiredLevels, parentId] = queue.shift();
-    const building = graph.get(currentBuildingId);
-    if (!building) continue;
-
-    let node = result.get(currentBuildingId);
-    if (!node) {
-      node = {
-        id: building.id,
-        name: building.name,
-        input: {},
-        output: {},
-        requiredLevels: 0,
-        parentIds: new Set(),
-        buildingCount: 0,
-        multiplier: multipliers[building.id] || 1,
-        specificBuildingLevel: null,
-      };
-      result.set(currentBuildingId, node);
-    }
-
-    node.requiredLevels += requiredLevels;
-    node.buildingCount += 1;
-    if (parentId) node.parentIds.add(parentId);
-
-    Object.entries(building.input).forEach(([resource, amount]) => {
-      node.input[resource] = (node.input[resource] || 0) + amount * requiredLevels;
-    });
-
-    Object.entries(building.output).forEach(([resource, amount]) => {
-      node.output[resource] = (node.output[resource] || 0) + amount * requiredLevels;
-    });
-
-    Object.entries(building.input).forEach(([inputResource, inputAmount]) => {
-      const inputBuilding = Array.from(graph.values()).find(b => Object.keys(b.output).includes(inputResource));
-      if (inputBuilding) {
-        const inputRequiredAmount = requiredLevels * inputAmount;
-        const inputBuildingOutput = inputBuilding.output[inputResource];
-        const inputBuildingMultiplier = (multipliers[inputBuilding.id] || 1) + globalBuff;
-        const inputRequiredLevels = inputRequiredAmount / (inputBuildingOutput * inputBuildingMultiplier);
-        queue.push([inputBuilding.id, inputRequiredLevels, currentBuildingId]);
-      }
-    });
-  }
-
-  return Array.from(result.values()).map(node => ({
-    ...node,
-    input: Object.entries(node.input).map(([resource, amount]) => ({ resource, amount })),
-    output: Object.entries(node.output).map(([resource, amount]) => ({ resource, amount })),
-    parentId: Array.from(node.parentIds)[0] || null,
-  }));
-}
-
-
-export function processChainData(
-  flow,
-  graph,
-  state
-) {
+export function processChainData(flow, graph, state) {
   return flow.map(node => {
-    const building = graph.get(node.id);
+    const building = graph.get(node.buildingId);
     if (!building) return node;
 
-    const getBuildingLevel = (nodeId) => {
-      if (state.specificBuildingLevels[nodeId]) {
-        return state.specificBuildingLevels[nodeId];
-      } else if (state.buildingLevel) {
-        return parseInt(state.buildingLevel);
-      } else {
-        return 1;
-      }
-    };
-
-    const buildingLevel = getBuildingLevel(node.id);
-    const outputAmount = Object.values(building.output)[0]; // Assuming single output for simplicity
-    const totalMultiplier = (state.multipliers[node.id] || 1) + state.globalBuff;
+    const isSelectedBuilding = node.buildingId === state.selectedBuilding;
+    const buildingMultiplier = state.multipliers[node.buildingId] ?? 1;
+    const outputAmount = Object.values(building.output)[0];
+    
+    // Only apply multiplier if it's not the selected building
+    const totalMultiplier = isSelectedBuilding 
+      ? 1  // Selected building doesn't get multiplier
+      : buildingMultiplier + state.globalBuff;
+    
     const outputPerLevel = outputAmount * totalMultiplier;
 
-    const estimatedBuildings = Math.ceil(node.requiredLevels / buildingLevel);
+    const estimatedBuildings = Math.ceil(node.requiredLevels / 
+      (state.specificBuildingLevels[node.buildingId] || state.buildingLevel || 1));
 
     return {
       ...node,
       buildingCount: estimatedBuildings,
-      specificBuildingLevel: state.specificBuildingLevels[node.id] || null,
+      multiplier: buildingMultiplier,
       outputPerLevel,
       totalOutput: outputPerLevel * node.requiredLevels,
-      estimatedBuildings: estimatedBuildings
+      estimatedBuildings,
+      isSelectedBuilding
     };
   });
 }
+
 
 export function calculateBuildings(
   node: ChainNode,
@@ -155,8 +132,9 @@ export function calculateAdjustedProduction(
   state: ProductChainState
 ): number {
   const buildingLevels = Math.ceil(node.requiredAmount * getBuildingLevels(state));
-  const buildingMultiplier = state.multipliers[node.id] || 1;
-  return baseProduction * buildingLevels * (buildingMultiplier + state.globalBuff);
+  const buildingMultiplier = Math.min(99, Math.max(1, state.multipliers[node.id] || 1));
+  const globalBuff = Math.min(99, Math.max(0, state.globalBuff));
+  return baseProduction * buildingLevels * (buildingMultiplier + globalBuff);
 }
 
 export function getBuildingLevelForCalculation(
@@ -186,6 +164,7 @@ export function calculateDividedSubtotal(chain: ChainNode[], state: ProductChain
 
 export function calculateEstimatedOutput(selectedNode: ChainNode | null, state: ProductChainState): number | null {
   if (!selectedNode) return null;
-  const buildingMultiplier = state.multipliers[selectedNode.id] || 1;
-  return Math.ceil((buildingMultiplier + state.globalBuff) * selectedNode.requiredAmount);
+  const buildingMultiplier = Math.min(99, Math.max(1, state.multipliers[selectedNode.id] || 1));
+  const globalBuff = Math.min(99, Math.max(0, state.globalBuff));
+  return Math.ceil((buildingMultiplier + globalBuff) * selectedNode.requiredAmount);
 }

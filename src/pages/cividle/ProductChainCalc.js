@@ -1,13 +1,25 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RadioGroup, Radio, TextField, Select, MenuItem, Grid, Typography, Paper, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, FormControlLabel, Button } from '@mui/material';
-import { buildGraph, calculateCombinedResourceFlow, calculateUniqueResourceFlow, processChainData, calculateBuildings, calculateAdjustedProduction, calculateSubtotal, calculateDividedSubtotal, calculateEstimatedOutput } from './productChainUtils';
+import { TextField, Select, MenuItem, Grid, Typography, Paper, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, FormControlLabel, Button } from '@mui/material';
+import { 
+  buildGraph, 
+  calculateUniqueResourceFlow, 
+  processChainData, 
+  calculateBuildings, 
+  calculateAdjustedProduction, 
+  calculateSubtotal, 
+  calculateDividedSubtotal, 
+  calculateEstimatedOutput 
+} from './productChainUtils';
 import buildingsData from '../../data/buildingData.json';
 import ProductChainGraph from './ProductChainGraph';
 import { Modal } from '@mui/material';
 import PageHeader from '../../components/PageHeader';
+import Alert from '../../components/Alert';
 
 const PAGE_TITLE = "Production Chain Calculator and Display";
 const PAGE_DESCRIPTION = "This page allows you to see the breakdown of the production chain required to generate a good. Select the building you want to build and its dependencies will be calculated. Click on the 'Show Visual Graph' to see a visualization of the chain."
+
+
 
 
 
@@ -25,7 +37,7 @@ const ProductChainCalc = () => {
 	const [showAllItems, setShowAllItems] = useState(false);
 	const [showGraph, setShowGraph] = useState(false);
 	const [graph, setGraph] = useState(null);
-	const [calculationMode, setCalculationMode] = useState('unique');
+	
 	useEffect(() => 
 	{
 		setGraph(buildGraph(buildingsData));
@@ -33,40 +45,39 @@ const ProductChainCalc = () => {
 
 useEffect(() => {
   if (state.selectedBuilding && graph) {
-    let flow;
-    if (calculationMode === 'unique') {
-      flow = calculateUniqueResourceFlow(
-        graph, 
-        state.selectedBuilding, 
-        state.multipliers, 
-        state.globalBuff,
-        parseInt(state.buildingCount) || 1,
-        parseInt(state.buildingLevel) || 1
-      );
-    } else {
-      flow = calculateCombinedResourceFlow(
-        graph, 
-        state.selectedBuilding, 
-        state.multipliers, 
-        state.globalBuff,
-        parseInt(state.buildingCount) || 1,
-        parseInt(state.buildingLevel) || 1
-      );
-    }
+    const flow = calculateUniqueResourceFlow(
+      graph, 
+      state.selectedBuilding, 
+      state.multipliers, 
+      state.globalBuff,
+      parseInt(state.buildingCount) || 1,
+      parseInt(state.buildingLevel) || 1,
+      state.specificBuildingLevels
+    );
     const chainData = processChainData(flow, graph, state);
     setState(prevState => ({ ...prevState, chain: chainData }));
   }
-}, [state.selectedBuilding, state.multipliers, graph, state.globalBuff, state.buildingCount, state.buildingLevel, state.specificBuildingLevels, calculationMode]);
+}, [
+  state.selectedBuilding, 
+  state.multipliers, 
+  graph, 
+  state.globalBuff, 
+  state.buildingCount, 
+  state.buildingLevel, 
+  state.specificBuildingLevels
+]);
 
-  const handleMultiplierChange = (buildingId, value) => {
-    setState(prevState => ({
-      ...prevState,
-      multipliers: {
-        ...prevState.multipliers,
-        [buildingId]: parseFloat(value) || 1
-      }
-    }));
-  };
+
+	const handleMultiplierChange = (buildingId, value) => {
+	  
+	  setState(prevState => ({
+		...prevState,
+		multipliers: {
+		  ...prevState.multipliers,
+		  [buildingId]: value
+		}
+	  }));
+	};
 
   const sortedBuildings = useMemo(() => {
     return [...buildingsData]
@@ -90,7 +101,11 @@ useEffect(() => {
 
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
-      <PageHeader title={PAGE_TITLE} description={PAGE_DESCRIPTION} />  
+      <PageHeader title={PAGE_TITLE} description={PAGE_DESCRIPTION} />
+	  <Alert 
+  title="Big Update!" 
+  description="This page has been dramatically overhauled with new logic and improved visualizations. Bugs are likely. Collapsing buildings is currently not implemented, but will be soon." 
+	/>
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6}>
@@ -140,22 +155,21 @@ useEffect(() => {
           </Grid>
           <Grid item xs={12}>
             <TextField
-              label="Global Buff"
-              type="number"
-              value={state.globalBuff}
-              onChange={(e) => handleInputChange('globalBuff', parseInt(e.target.value) || 0)}
-              fullWidth
-              inputProps={{ min: "0", step: "1" }}
-            />
+  label="Global Buff"
+  type="number"
+  value={state.globalBuff}
+  onChange={(e) => {
+    const value = Math.min(99, Math.max(0, parseInt(e.target.value) || 0));
+    handleInputChange('globalBuff', value);
+  }}
+  fullWidth
+  inputProps={{ 
+    min: "0", 
+    max: "99",
+    step: "1" 
+  }}
+/>
           </Grid>
-		  <RadioGroup
-			row
-			value={calculationMode}
-			onChange={(e) => setCalculationMode(e.target.value)}
-		  >
-			<FormControlLabel value="unique" control={<Radio />} label="Unique Nodes" />
-			<FormControlLabel value="combined" control={<Radio />} label="Combined Nodes" />
-		  </RadioGroup>
         </Grid>
       </Box>
       
@@ -189,22 +203,39 @@ useEffect(() => {
                     <TableCell>{row.name}</TableCell>
                     <TableCell style={{ whiteSpace: 'pre-line' }}>{row.input.map(i => `${i.resource}: ${i.amount.toFixed(0)}`).join('\n')}</TableCell>
                     <TableCell style={{ whiteSpace: 'pre-line' }}>{row.output.map(o => `${o.resource}: ${o.amount.toFixed(0)}`).join('\n')}</TableCell>
-                    <TableCell>
-                      <TextField
-                        type="number"
-                        value={state.multipliers[row.id] || 1}
-                        onChange={(e) => handleMultiplierChange(row.id, e.target.value)}
-                        inputProps={{ min: "1", step: "0.1", style: { width: '80px' } }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        type="number"
-                        value={state.specificBuildingLevels[row.id] || ''}
-                        onChange={(e) => handleSpecificBuildingLevelChange(row.id, e.target.value)}
-                        inputProps={{ min: "1", step: "1", style: { width: '80px' } }}
-                      />
-                    </TableCell>
+					<TableCell>
+					  <TextField
+						type="number"
+						value={state.multipliers[row.buildingId] ?? 1}  // Using nullish coalescing
+						onChange={(e) => {
+						  const value = Math.min(99, Math.max(1, parseFloat(e.target.value) || 1));
+						  handleMultiplierChange(row.buildingId, value);
+						}}
+						inputProps={{ 
+						  min: "1", 
+						  max: "99",
+						  step: "1", 
+						  style: { width: '80px' } 
+						}}
+					  />
+					</TableCell>
+					<TableCell>
+					  <TextField
+						type="number"
+						value={state.specificBuildingLevels[row.id] || ''}
+						onChange={(e) => {
+						  const value = e.target.value === '' ? '' : 
+							Math.min(99, Math.max(1, parseInt(e.target.value) || 1));
+						  handleSpecificBuildingLevelChange(row.id, value);
+						}}
+						inputProps={{ 
+						  min: "1", 
+						  max: "99",
+						  step: "1", 
+						  style: { width: '80px' } 
+						}}
+					  />
+					</TableCell>
                     <TableCell>{row.requiredLevels.toFixed(0)}</TableCell>
                     <TableCell>{row.estimatedBuildings}</TableCell>            
                   </TableRow>
@@ -254,7 +285,6 @@ useEffect(() => {
   buildingCount={parseInt(state.buildingCount) || 1}
   buildingLevel={parseInt(state.buildingLevel) || 1}
   specificBuildingLevels={state.specificBuildingLevels}
-  calculationMode={calculationMode}
 />
   </Box>
 </Modal>

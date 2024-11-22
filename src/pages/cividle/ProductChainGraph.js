@@ -5,14 +5,14 @@ import ReactFlow, {
   MarkerType,
   Background,
   Controls,
-  Handle,
   Position,
   BezierEdge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { IconButton, Box, Typography } from '@mui/material';
+import { IconButton, Box } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import dagre from 'dagre';
+import ProductionNode from '../../components/ProductionNode'; // Import your custom node
 
 const defaultEdgeOptions = {
   type: BezierEdge,
@@ -23,42 +23,9 @@ const defaultEdgeOptions = {
   },
 };
 
-const CustomNode = ({ data }) => (
-  <div style={{
-    background: '#eee',
-    border: '1px solid #ddd',
-    borderRadius: '50%',
-    color: '#202020',
-    padding: '10px',
-    width: '150px',
-    height: '150px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    fontSize: '11px',
-    textAlign: 'center',
-  }}>
-    <Handle type="target" position={Position.Top} style={{ background: '#555' }} isConnectable={true} />
-    <div>
-      {data.inputs && data.inputs.length > 0 && (
-        <Typography variant="caption" component="div">
-          {data.inputs.map(input => `${input.resource}: ${input.amount}`).join(', ')}
-        </Typography>
-      )}
-    </div>
-    <Typography variant="subtitle2" component="div">{data.label}</Typography>
-    <div>
-      <Typography variant="caption" component="div">
-        {data.outputs.map(output => `${output.resource}: ${output.amount}`).join(', ')}
-      </Typography>
-    </div>
-    <Handle type="source" position={Position.Bottom} style={{ background: '#555' }} isConnectable={true} />
-  </div>
-);
-
+// Update nodeTypes to use your imported ProcessNode
 const nodeTypes = {
-  custom: CustomNode,
+  processNode: ProductionNode,
 };
 
 const ProductChainGraph = ({ 
@@ -83,10 +50,10 @@ const ProductChainGraph = ({
     const dagreGraph = new dagre.graphlib.Graph();
     dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-    const nodeWidth = 150;
-    const nodeHeight = 150;
+    // Adjust these values based on your ProcessNode dimensions
+    const nodeWidth = 200;  // Adjust based on your node's width
+    const nodeHeight = 150; // Adjust based on your node's height
 
-    //const isHorizontal = direction === 'LR';
     dagreGraph.setGraph({ rankdir: direction });
 
     nodes.forEach((node) => {
@@ -115,66 +82,49 @@ const ProductChainGraph = ({
   };
 
 const createNodes = useMemo(() => {
-  return chain.map((item, index) => ({
-    id: `${item.id}-${index}`, // Use a unique id for each node
-    type: 'custom',
+  return chain.map((item) => ({
+    id: item.id, // Use the unique ID directly (no need for additional index)
+    type: 'processNode',
     data: { 
       label: `${item.name} (x${item.estimatedBuildings || 1})`,
       inputs: item.input,
       outputs: item.output,
       requiredAmount: item.requiredLevels || 0,
-      originalId: item.id, // Store the original id for edge creation
+      originalId: item.buildingId, // Store the original building ID if needed
     },
     position: { x: 0, y: 0 },
   }));
 }, [chain]);
 
 
-
 const createEdges = useMemo(() => {
-  return chain.flatMap((item, itemIndex) => {
-   /* if (calculationMode === 'unique') {
-      // For unique mode, only connect to the immediate parent
-      if (item.parentId) {
-        const parentIndex = chain.findIndex(node => node.id === item.parentId);
-        if (parentIndex !== -1) {
-          return [{
-            id: `e${item.parentId}-${parentIndex}-${item.id}-${itemIndex}`,
-            source: `${item.parentId}-${parentIndex}`,
-            target: `${item.id}-${itemIndex}`,
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top,
-            type: BezierEdge,
-            animated: false,
-            label: item.input[0]?.resource, // Assuming there's at least one input
-            style: {
-              stroke: '#777',
-              strokeWidth: '1.5px',
-            },
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              color: '#888',
-            },
-          }];
-        }
-      }
-      return [];
-    } else {*/
-      // For combined mode, use the existing logic
-      return item.input.flatMap(input => {
-        const sourceNodes = chain.map((node, nodeIndex) => ({...node, index: nodeIndex})).filter(node => 
-          node.output.some(output => output.resource === input.resource)
+  return chain
+    .filter(node => node.parentId)
+    .flatMap(node => {
+      // For each output of this node
+      return node.output.map((output, outputIndex) => {
+        // Find the parent node
+        const parent = chain.find(p => p.id === node.parentId);
+        if (!parent) return null;
+
+        // Find which input in the parent matches this output's resource
+        const parentInputIndex = parent.input.findIndex(
+          input => input.resource === output.resource
         );
 
-        return sourceNodes.map(sourceNode => ({
-          id: `e${sourceNode.id}-${sourceNode.index}-${item.id}-${itemIndex}-${input.resource}`,
-          source: `${sourceNode.id}-${sourceNode.index}`,
-          target: `${item.id}-${itemIndex}`,
+        if (parentInputIndex === -1) return null;
+
+        return {
+          id: `e${node.id}-${node.parentId}-${output.resource}`,
+          source: node.id,
+          target: node.parentId,
+          sourceHandle: 'output', // Single output handle
+          targetHandle: `input-${parentInputIndex}`, // Specific input handle
           sourcePosition: Position.Bottom,
           targetPosition: Position.Top,
           type: BezierEdge,
           animated: false,
-          label: input.resource,
+          //label: `${output.resource}: ${output.amount.toFixed(1)}`,
           style: {
             stroke: '#777',
             strokeWidth: '1.5px',
@@ -183,17 +133,16 @@ const createEdges = useMemo(() => {
             type: MarkerType.ArrowClosed,
             color: '#888',
           },
-        }));
-      });
-   // }
-  });
-}, [chain, calculationMode]);
+        };
+      }).filter(Boolean); // Remove null entries
+    });
+}, [chain]);
 
-useEffect(() => {
-  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(createNodes, createEdges);
-  setNodes(layoutedNodes);
-  setEdges(layoutedEdges);
-}, [chain, globalBuff, calculationMode, setNodes, setEdges]);
+  useEffect(() => {
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(createNodes, createEdges);
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
+  }, [chain, globalBuff, calculationMode, setNodes, setEdges]);
 
   const onConnect = useCallback((params) => setEdges((eds) => [...eds, params]), [setEdges]);
 
