@@ -25,7 +25,7 @@ export function calculateUniqueResourceFlow(
 
   while (queue.length > 0) {
     const [currentBuildingId, requiredLevels, parentId, pathIndex] = queue.shift();
-    const uniqueNodeId = `${currentBuildingId}_${pathIndex}`;
+    const uniqueNodeId = `${currentBuildingId}_${parentId ?? 'root'}_${pathIndex}`;
     
     if (visited.has(uniqueNodeId)) continue;
     visited.set(uniqueNodeId, true);
